@@ -1,103 +1,356 @@
 @import "tailwindcss";
 
-:root {
-  /* Paleta Liebre — deportiva, fresca, tecnológica */
-  --ink: #0e1116;            /* casi negro, alto contraste */
-  --ink-soft: #1f2430;
-  --paper: #f8f7f2;          /* blanco hueso */
-  --paper-warm: #efebe2;
-  --accent: #00b8a9;         /* turquesa deportivo */
-  --accent-deep: #009688;
-  --signal: #ff4d5e;         /* alerta */
-  --highlight: #f4b84a;      /* destacar números */
-  --muted: #6b7280;
-  --rule: #d1d5db;
+/* ════════════════════════════════════════════════════════════════
+   LIEBRE — Sistema de diseño basado en Garmin Connect (tokens reales)
+   Extraído de connect.garmin.com (CSS custom properties + design audit).
+   Diferenciador Liebre = mismas viz que Connect + interpretación causal
+   + cita científica embebida.
+   ════════════════════════════════════════════════════════════════ */
 
+:root {
+  /* ── Surfaces ── */
+  --bg-sidebar:        #1a1a1a;
+  --bg-content:        #ffffff;
+  --bg-page:           #f5f5f5;
+  --bg-card:           #ffffff;
+  --bg-card-subtle:    #f9fafb;
+  --bg-card-hover:     #f3f4f6;
+  --bg-overlay:        rgba(15, 17, 21, 0.5);
+
+  /* ── Ink ── */
+  --ink-primary:       #1c1c1c;
+  --ink-secondary:     #6b7280;
+  --ink-tertiary:      #9ca3af;
+  --ink-on-dark:       #ffffff;
+  --ink-on-dark-soft:  rgba(255, 255, 255, 0.6);
+  --ink-on-dark-dim:   rgba(255, 255, 255, 0.4);
+
+  /* ── Brand ── */
+  --accent-brand:      #1976d2;  /* azul Connect — botones, tabs activos */
+  --accent-brand-soft: #3b97f3;
+  --accent-orange:     #f5a623;  /* naranja running — íconos de actividad */
+
+  /* ── Data viz primarios (extraídos del DOM real de Connect) ── */
+  --viz-blue:          #1976d2;
+  --viz-blue-soft:     #3b97f3;
+  --viz-green:         #16a544;
+  --viz-green-soft:    #40c35d;
+  --viz-red:           #e02c2c;
+  --viz-red-soft:      #f85454;
+  --viz-orange:        #f27716;
+  --viz-orange-soft:   #fd9d39;
+  --viz-purple:        #6f42f3;
+  --viz-purple-soft:   #9370f9;
+  --viz-violet:        #d42fc2;
+  --viz-violet-soft:   #e55ecb;
+  --viz-teal:          #15aabf;
+  --viz-yellow:        #faca48;
+  --viz-ink:           #000000;
+  --viz-gray:          #a6a6a6;
+  --viz-stress-high:   #de5809;
+
+  /* ── Semantic ── */
+  --semantic-positive: #16a544;
+  --semantic-warning:  #f27716;
+  --semantic-danger:   #e02c2c;
+  --semantic-neutral:  #9ca3af;
+  --semantic-info:     #1976d2;
+
+  /* Signed impact (cards de factor con +/-) */
+  --impact-positive:   #16a544;
+  --impact-negative:   #e02c2c;
+  --impact-neutral:    #6b7280;
+
+  /* ── Sleep stages ── */
+  --sleep-deep:        #1976d2;
+  --sleep-light:       #3b97f3;
+  --sleep-rem:         #d42fc2;
+  --sleep-awake:       #000000;
+
+  /* ── HR zones (basadas en Garmin defaults) ── */
+  --zone-1:            #9ca3af;  /* calentamiento gris */
+  --zone-2:            #3b82f6;  /* fácil azul */
+  --zone-3:            #22c55e;  /* aeróbico verde */
+  --zone-4:            #fbbf24;  /* umbral ámbar */
+  --zone-5:            #ef4444;  /* máximo rojo */
+
+  /* ── Chart series (vista de actividad — Highcharts-style stack) ── */
+  --chart-hr-line:        #ef4444;
+  --chart-hr-fill:        #fecaca;
+  --chart-pace-line:      #3b82f6;
+  --chart-pace-fill:      #bad8f7;
+  --chart-altitude-line:  #22c55e;
+  --chart-altitude-fill:  #bbf7d0;
+  --chart-power-line:     #2563eb;
+  --chart-power-fill:     #bfdbfe;
+  --chart-cadence-good:   #16a544;
+  --chart-cadence-mid:    #f27716;
+  --chart-cadence-low:    #e02c2c;
+
+  /* ── Cronología 24h (tokens reales de Body Battery + Stress) ── */
+  --cron-bb-area:        #2a88e6;
+  --cron-bb-point:       #1976d2;
+  --cron-sleep:          #544fc5;
+  --cron-rest:           #22c55e;
+  --cron-stress:         #fe6a35;
+  --cron-active:         #fa4b42;
+  --cron-no-data:        #6b8abc;
+  --cron-activity-violet:#d568fb;
+  --cron-activity-teal:  #2ee0ca;
+
+  /* ── Training status (estado de entrenamiento) ── */
+  --ts-recovering:     #3b82f6;
+  --ts-base:           #6b7280;
+  --ts-productive:     #9333ea;
+  --ts-maintaining:    #22c55e;
+  --ts-peaking:        #f97316;
+  --ts-overreaching:   #ef4444;
+  --ts-detraining:     #eab308;
+
+  /* ── HRV state pills ── */
+  --hrv-balanced:      #16a544;
+  --hrv-low:           #f27716;
+  --hrv-unbalanced:    #e02c2c;
+  --hrv-noState:       #9ca3af;
+
+  /* ── Layout ── */
+  --sidebar-width:     272px;
+  --content-padding:   32px;
+  --gap-section:       20px;
+  --gap-card-grid:     16px;
+
+  /* ── Elevation ── */
+  --shadow-card:       0 1px 3px rgba(0, 0, 0, 0.08);
+  --shadow-card-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
+  --shadow-popover:    0 8px 24px rgba(0, 0, 0, 0.16);
+
+  /* ── Radius ── */
+  --radius-card:       8px;
+  --radius-button:     6px;
+  --radius-pill:       999px;
+  --radius-tiny:       4px;
+
+  /* ── Fonts ── */
   --font-display: var(--font-instrument-serif);
-  --font-body: var(--font-inter);
-  --font-mono: var(--font-jetbrains-mono);
+  --font-body:    var(--font-inter);
+  --font-mono:    var(--font-jetbrains-mono);
 }
 
 @theme inline {
-  --color-ink: var(--ink);
-  --color-ink-soft: var(--ink-soft);
-  --color-paper: var(--paper);
-  --color-paper-warm: var(--paper-warm);
-  --color-accent: var(--accent);
-  --color-accent-deep: var(--accent-deep);
-  --color-signal: var(--signal);
-  --color-highlight: var(--highlight);
-  --color-muted: var(--muted);
-  --color-rule: var(--rule);
+  --color-bg-sidebar: var(--bg-sidebar);
+  --color-bg-content: var(--bg-content);
+  --color-bg-page: var(--bg-page);
+  --color-bg-card: var(--bg-card);
+  --color-bg-card-subtle: var(--bg-card-subtle);
+  --color-bg-card-hover: var(--bg-card-hover);
+
+  --color-ink-primary: var(--ink-primary);
+  --color-ink-secondary: var(--ink-secondary);
+  --color-ink-tertiary: var(--ink-tertiary);
+  --color-ink-on-dark: var(--ink-on-dark);
+  --color-ink-on-dark-soft: var(--ink-on-dark-soft);
+
+  --color-accent-brand: var(--accent-brand);
+  --color-accent-brand-soft: var(--accent-brand-soft);
+  --color-accent-orange: var(--accent-orange);
+
+  --color-positive: var(--semantic-positive);
+  --color-warning: var(--semantic-warning);
+  --color-danger: var(--semantic-danger);
+  --color-neutral: var(--semantic-neutral);
+
+  --color-impact-positive: var(--impact-positive);
+  --color-impact-negative: var(--impact-negative);
+
+  --color-zone-1: var(--zone-1);
+  --color-zone-2: var(--zone-2);
+  --color-zone-3: var(--zone-3);
+  --color-zone-4: var(--zone-4);
+  --color-zone-5: var(--zone-5);
 
   --font-display: var(--font-display);
   --font-body: var(--font-body);
   --font-mono: var(--font-mono);
 }
 
+/* ════════════════════════════════════════════════════════════════
+   Base
+   ════════════════════════════════════════════════════════════════ */
+
 html {
-  background: var(--paper);
-  color: var(--ink);
+  background: var(--bg-page);
+  color: var(--ink-primary);
 }
 
 body {
-  font-family: var(--font-body), ui-sans-serif, system-ui, sans-serif;
-  font-feature-settings: "ss01", "cv11";
+  font-family: var(--font-body), -apple-system, BlinkMacSystemFont, "Segoe UI",
+               Roboto, ui-sans-serif, sans-serif;
+  font-feature-settings: "ss01", "cv11", "tnum";
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Wordmark "Liebre" */
+/* ════════════════════════════════════════════════════════════════
+   Tipografía utilitaria
+   ════════════════════════════════════════════════════════════════ */
+
+/* Wordmark — solo home/sidebar header */
 .wordmark {
   font-family: var(--font-display), ui-serif, Georgia, serif;
   letter-spacing: -0.02em;
   font-weight: 400;
 }
 .wordmark .dot {
-  color: var(--accent-deep);
+  color: var(--accent-brand);
 }
 
-/* Número grande métrico */
-.metric {
-  font-family: var(--font-display);
+/* Display de métricas grandes (gauges, KPIs principales) */
+.metric-display {
+  font-family: var(--font-display), ui-serif, serif;
   font-feature-settings: "tnum";
+  font-weight: 300;
   letter-spacing: -0.04em;
   line-height: 1;
+  color: var(--ink-primary);
 }
 
-/* Cifras pequeñas tabulares */
+/* KPI mediano (cards "De un vistazo") */
+.metric-kpi {
+  font-weight: 600;
+  font-feature-settings: "tnum";
+  letter-spacing: -0.02em;
+  line-height: 1;
+  color: var(--ink-primary);
+}
+
+/* Cifras tabulares en tablas y listas */
 .tnum {
   font-variant-numeric: tabular-nums;
 }
 
-/* Pulso animado para latest value */
+/* Label uppercase (DISTANCIA, RITMO MEDIO) */
+.label-uppercase {
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 0.6875rem; /* 11px */
+  font-weight: 500;
+  color: var(--ink-tertiary);
+}
+
+/* ════════════════════════════════════════════════════════════════
+   Card primitives
+   ════════════════════════════════════════════════════════════════ */
+
+.card {
+  background: var(--bg-card);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  padding: 20px;
+}
+
+.card-subtle {
+  background: var(--bg-card-subtle);
+  border-radius: var(--radius-card);
+  padding: 16px;
+}
+
+.card-dark {
+  background: var(--bg-sidebar);
+  color: var(--ink-on-dark);
+  border-radius: var(--radius-card);
+  padding: 24px;
+}
+
+/* ════════════════════════════════════════════════════════════════
+   Status pills (semáforo verbal)
+   ════════════════════════════════════════════════════════════════ */
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  letter-spacing: 0.01em;
+}
+.status-pill::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.status-pill.balanced    { color: var(--hrv-balanced); background: color-mix(in srgb, var(--hrv-balanced) 12%, transparent); }
+.status-pill.low         { color: var(--hrv-low); background: color-mix(in srgb, var(--hrv-low) 14%, transparent); }
+.status-pill.unbalanced  { color: var(--hrv-unbalanced); background: color-mix(in srgb, var(--hrv-unbalanced) 14%, transparent); }
+.status-pill.no-state    { color: var(--hrv-noState); background: color-mix(in srgb, var(--hrv-noState) 14%, transparent); }
+.status-pill.building    { color: var(--ink-secondary); background: rgba(107,114,128,0.12); }
+
+/* ════════════════════════════════════════════════════════════════
+   Animations
+   ════════════════════════════════════════════════════════════════ */
+
 @keyframes liebre-pulse {
-  0%, 100% { transform: scale(1); opacity: 1; }
-  50%      { transform: scale(1.12); opacity: 0.8; }
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.55; }
 }
 .pulse-dot {
   animation: liebre-pulse 1.8s ease-in-out infinite;
 }
 
-/* Focus ring uniforme */
+/* ════════════════════════════════════════════════════════════════
+   Focus
+   ════════════════════════════════════════════════════════════════ */
+
 :where(button, a, input, select, textarea):focus-visible {
-  outline: 2px solid var(--accent-deep);
-  outline-offset: 3px;
-  border-radius: 4px;
+  outline: 2px solid var(--accent-brand);
+  outline-offset: 2px;
+  border-radius: var(--radius-tiny);
 }
 
-/* Status pills */
-.status-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  font-size: 0.75rem;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
-  padding: 0.35rem 0.75rem;
-  border-radius: 999px;
+/* ════════════════════════════════════════════════════════════════
+   Utilities explícitas — garantizan que las clases tipo "bg-bg-card"
+   y "text-ink-primary" funcionen sin depender de @theme inline.
+   ════════════════════════════════════════════════════════════════ */
+
+@layer utilities {
+  /* Backgrounds */
+  .bg-bg-sidebar       { background-color: var(--bg-sidebar); }
+  .bg-bg-content       { background-color: var(--bg-content); }
+  .bg-bg-page          { background-color: var(--bg-page); }
+  .bg-bg-card          { background-color: var(--bg-card); }
+  .bg-bg-card-subtle   { background-color: var(--bg-card-subtle); }
+  .bg-bg-card-hover    { background-color: var(--bg-card-hover); }
+  .bg-accent-brand     { background-color: var(--accent-brand); }
+  .bg-accent-brand-soft{ background-color: var(--accent-brand-soft); }
+  .bg-accent-orange    { background-color: var(--accent-orange); }
+  .bg-positive         { background-color: var(--semantic-positive); }
+  .bg-warning          { background-color: var(--semantic-warning); }
+  .bg-danger           { background-color: var(--semantic-danger); }
+
+  /* Text colors */
+  .text-ink-primary       { color: var(--ink-primary); }
+  .text-ink-secondary     { color: var(--ink-secondary); }
+  .text-ink-tertiary      { color: var(--ink-tertiary); }
+  .text-ink-on-dark       { color: var(--ink-on-dark); }
+  .text-ink-on-dark-soft  { color: var(--ink-on-dark-soft); }
+  .text-accent-brand      { color: var(--accent-brand); }
+  .text-accent-brand-soft { color: var(--accent-brand-soft); }
+  .text-accent-orange     { color: var(--accent-orange); }
+  .text-positive          { color: var(--semantic-positive); }
+  .text-warning           { color: var(--semantic-warning); }
+  .text-danger            { color: var(--semantic-danger); }
+  .text-signal            { color: var(--semantic-danger); }
+
+  /* Borders */
+  .border-rule { border-color: #e5e7eb; }
+
+  /* Sidebar utilities (white opacity) */
+  .bg-white\/5    { background-color: rgba(255, 255, 255, 0.05); }
+  .bg-white\/8    { background-color: rgba(255, 255, 255, 0.08); }
+  .bg-white\/10   { background-color: rgba(255, 255, 255, 0.10); }
+  .border-white\/8 { border-color: rgba(255, 255, 255, 0.08); }
 }
-.status-pill.optimal           { background: rgba(0, 184, 169, 0.12); color: var(--accent-deep); }
-.status-pill.reduced           { background: rgba(244, 184, 74, 0.18); color: #a3680b; }
-.status-pill.suppressed        { background: rgba(255, 77, 94, 0.14); color: #c8323f; }
-.status-pill.building_baseline { background: rgba(107, 114, 128, 0.14); color: var(--muted); }

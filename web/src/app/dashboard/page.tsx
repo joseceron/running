@@ -1,84 +1,131 @@
 import { liebreApi } from "@/lib/api";
-import { DashboardHeader } from "@/components/dashboard/Header";
+import { Sidebar } from "@/components/dashboard/Sidebar";
+import { TopBar } from "@/components/dashboard/TopBar";
 import { GoalCard } from "@/components/dashboard/GoalCard";
 import { ProfileCard } from "@/components/dashboard/ProfileCard";
 import { HRVCard } from "@/components/dashboard/HRVCard";
 import { WeeklyTable } from "@/components/dashboard/WeeklyTable";
+import { DiagnosticoDelDiaCard } from "@/components/dashboard/DiagnosticoDelDiaCard";
+import { FactorImpactList } from "@/components/dashboard/FactorImpactList";
+import { UpcomingTrainingsCard } from "@/components/dashboard/UpcomingTrainingsCard";
+import { Cronologia24h } from "@/components/dashboard/Cronologia24h";
 
-// Forzar SSR siempre — datos en vivo
 export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
   let data;
+  let diagnosis = null;
+  let cronologia = null;
   try {
-    data = await liebreApi.dashboard();
+    [data, diagnosis, cronologia] = await Promise.all([
+      liebreApi.dashboard(),
+      liebreApi.diagnosis().catch((e) => {
+        console.error("diagnosis fetch failed", e);
+        return null;
+      }),
+      liebreApi.cronologia().catch((e) => {
+        console.error("cronologia fetch failed", e);
+        return null;
+      }),
+    ]);
   } catch (err) {
     return (
-      <main className="min-h-screen flex items-center justify-center p-8">
-        <div className="max-w-md text-center">
-          <p className="text-sm uppercase tracking-widest text-signal mb-3">
+      <main className="min-h-screen flex items-center justify-center p-8 bg-bg-page">
+        <div className="max-w-md text-center card">
+          <p className="label-uppercase" style={{ color: "var(--semantic-danger)" }}>
             API no disponible
           </p>
-          <p className="text-lg mb-4">No pude conectar con el backend de Liebre.</p>
-          <p className="text-sm text-muted">
-            Verifica que `uvicorn api.main:app --port 8080` esté corriendo y que
-            el Postgres local esté arriba.
+          <p className="text-lg text-ink-primary my-3">
+            No pude conectar con el backend de Liebre.
           </p>
-          <p className="text-xs text-muted mt-3 font-mono">{String(err)}</p>
+          <p className="text-sm text-ink-secondary">
+            Verifica que <code>uvicorn api.main:app --port 8080</code> esté
+            corriendo y que el Postgres local esté arriba.
+          </p>
+          <p className="text-xs text-ink-tertiary mt-3 font-mono">{String(err)}</p>
         </div>
       </main>
     );
   }
 
-  const { profile, hrv, weekly, days_to_goal } = data;
+  const { profile, hrv, weekly, upcoming, days_to_goal } = data;
+  const lastWeek = weekly.weeks[0] ?? null;
 
   return (
-    <main className="min-h-screen">
-      <DashboardHeader name={profile.name} />
+    <div className="min-h-screen bg-bg-page">
+      <Sidebar userName={profile.name} />
 
-      <section className="px-8 py-8 max-w-6xl mx-auto">
-        <div className="grid md:grid-cols-3 gap-5">
-          <GoalCard profile={profile} daysToGoal={days_to_goal} />
-          <ProfileCard profile={profile} />
-          <div className="rounded-2xl border border-rule bg-paper-warm/40 p-6">
-            <p className="text-xs uppercase tracking-widest text-muted mb-3">
-              Próximos pasos
-            </p>
-            <ul className="space-y-3 text-sm">
-              <li className="flex items-start gap-3">
-                <span className="text-accent-deep mt-1">▸</span>
-                <span>Completar {hrv.days_required - hrv.days_recorded} noches más de HRV</span>
-              </li>
-              <li className="flex items-start gap-3">
-                <span className="text-accent-deep mt-1">▸</span>
-                <span>Conectar Garmin con OAuth oficial (en roadmap)</span>
-              </li>
-              <li className="flex items-start gap-3">
-                <span className="text-accent-deep mt-1">▸</span>
-                <span>Recibir reportes en WhatsApp (Fase 2)</span>
-              </li>
-            </ul>
-          </div>
-        </div>
+      <main
+        className="min-h-screen"
+        style={{ marginLeft: "var(--sidebar-width)" }}
+      >
+        <div className="max-w-6xl mx-auto px-8 py-8">
+          <TopBar userName={profile.name} title="resumen del día" />
 
-        <div className="grid md:grid-cols-2 gap-5 mt-5">
-          <HRVCard hrv={hrv} />
-          <WeeklyTable weekly={weekly} />
-        </div>
-
-        <p className="text-xs text-muted mt-8 text-center">
-          Datos en vivo desde Postgres · API en{" "}
-          <code className="text-ink">localhost:8080</code> ·{" "}
-          <a
-            href="http://localhost:8080/docs"
-            target="_blank"
-            rel="noreferrer"
-            className="underline hover:text-ink"
+          {/* DIAGNÓSTICO DEL DÍA — el diferenciador Liebre, va arriba */}
+          <section
+            className="grid md:grid-cols-3 gap-4"
+            style={{ gridAutoRows: "min-content" }}
           >
-            ver Swagger
-          </a>
-        </p>
-      </section>
-    </main>
+            <DiagnosticoDelDiaCard
+              profile={profile}
+              hrv={hrv}
+              weekly={weekly}
+              diagnosis={diagnosis}
+            />
+            <GoalCard profile={profile} daysToGoal={days_to_goal} />
+          </section>
+
+          {/* HRV + Perfil */}
+          <section className="grid md:grid-cols-3 gap-4 mt-4">
+            <HRVCard hrv={hrv} />
+            <ProfileCard profile={profile} />
+          </section>
+
+          {/* Cronología 24h — el componente estrella de Connect */}
+          {cronologia && (
+            <section className="grid grid-cols-1 gap-4 mt-4">
+              <Cronologia24h cronologia={cronologia} />
+            </section>
+          )}
+
+          {/* Próximos entrenos — span completo, alta visibilidad */}
+          <section className="grid grid-cols-1 gap-4 mt-4">
+            <UpcomingTrainingsCard upcoming={upcoming} />
+          </section>
+
+          {/* Factores de impacto + Semanal */}
+          <section className="grid md:grid-cols-2 gap-4 mt-4">
+            <FactorImpactList
+              hrv={{
+                latest_value: hrv.latest_value,
+                baseline_ms: hrv.baseline_ms,
+              }}
+              weekly={{
+                acwr: lastWeek?.acwr ?? null,
+                executed_km: lastWeek?.executed_km ?? null,
+              }}
+            />
+            <WeeklyTable weekly={weekly} />
+          </section>
+
+          <footer className="mt-10 pt-6 border-t border-rule/30">
+            <p className="text-xs text-ink-tertiary text-center">
+              Datos en vivo · API en{" "}
+              <code className="text-ink-secondary">localhost:8080</code> ·{" "}
+              <a
+                href="http://localhost:8080/docs"
+                target="_blank"
+                rel="noreferrer"
+                className="text-accent-brand hover:underline"
+              >
+                ver Swagger
+              </a>{" "}
+              · diseño basado en Garmin Connect + capa Liebre
+            </p>
+          </footer>
+        </div>
+      </main>
+    </div>
   );
 }

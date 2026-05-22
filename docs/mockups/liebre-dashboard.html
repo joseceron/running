@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Liebre — Dashboard Mockups</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+  <script type="text/babel" src="design-canvas.jsx"></script>
+  <script type="text/babel" src="liebre-components.jsx"></script>
+  <script type="text/babel" src="liebre-cards.jsx"></script>
+  <script type="text/babel" src="liebre-views.jsx"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; height: 100%; overflow: hidden; }
+    #root { height: 100%; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #D1D5DB; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #9CA3AF; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const App = () => (
+      React.createElement(DesignCanvas, { title: 'Liebre — Dashboard Mockups' },
+        // ── Mockup 1: Building baseline ──────────────────────────────────
+        React.createElement(DCSection, { id: 's1', title: '01 · Dashboard principal — Construyendo baseline (1440×900)' },
+          React.createElement(DCArtboard, { id: 'a1', label: 'Desktop · Estado inicial', width: 1440, height: 900 },
+            React.createElement(Mockup1Desktop, null)
+          ),
+          React.createElement(DCArtboard, { id: 'an1', label: 'Anotaciones · Mockup 01', width: 264, height: 900 },
+            React.createElement(Annotation1, null)
+          )
+        ),
+        // ── Mockup 2: Optimal state ──────────────────────────────────────
+        React.createElement(DCSection, { id: 's2', title: '02 · Dashboard óptimo — Sistema equilibrado (1440×900)' },
+          React.createElement(DCArtboard, { id: 'a2', label: 'Desktop · Estado óptimo', width: 1440, height: 900 },
+            React.createElement(Mockup2Desktop, null)
+          ),
+          React.createElement(DCArtboard, { id: 'an2', label: 'Anotaciones · Mockup 02', width: 264, height: 900 },
+            React.createElement(Annotation2, null)
+          )
+        ),
+        // ── Mockup 3: Mobile ─────────────────────────────────────────────
+        React.createElement(DCSection, { id: 's3', title: '03 · Mobile — iPhone 375×812' },
+          React.createElement(DCArtboard, { id: 'a3', label: 'Mobile · 375×812', width: 375, height: 812 },
+            React.createElement(MobileLayout, null)
+          ),
+          React.createElement(DCArtboard, { id: 'an3', label: 'Anotaciones · Mockup 03', width: 264, height: 812 },
+            React.createElement(Annotation3, null)
+          )
+        )
+      )
+    );
+
+    ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App, null));
+  </script>
+</body>
+</html>

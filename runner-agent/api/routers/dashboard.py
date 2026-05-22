@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import date as DateT
+from datetime import date as DateT, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
@@ -13,6 +13,8 @@ from api.schemas.dashboard import (
     HRVNight,
     HRVOut,
     ProfileOut,
+    UpcomingTraining,
+    UpcomingTrainingsOut,
     WeeklyEntry,
     WeeklyOut,
 )
@@ -49,6 +51,69 @@ def _build_hrv(session: Session, user_id: str) -> HRVOut:
         latest_delta_pct=latest_delta_pct,
         status=_classify_hrv(latest_value, baseline) if latest_value else "building_baseline",
     )
+
+
+def _build_upcoming(session: Session, user_id: str) -> UpcomingTrainingsOut:
+    """Genera plan placeholder de próximos 5 entrenos.
+
+    Hasta que conectemos plan_agent multi-tenant, retorna una semana modelo
+    polarizada 80/20 ajustada al estado HRV actual.
+    """
+    today = DateT.today()
+    baseline_ms = hrv.get_baseline(session, user_id)
+    days_recorded = len(hrv.get_recent(session, user_id, days=14))
+    building = baseline_ms is None
+
+    # Plan modelo: si HRV building → todo Z2; si balanced → introduce Z3/Z4
+    template = (
+        [
+            ("Rodaje Z2", 40, "Z2", 6.0,
+             "HRV construyendo baseline — Z2 favorece adaptación aeróbica sin estrés autónomo."),
+            ("Fuerza", 45, "—", None,
+             "Núcleo + sóleo excéntrico. Crítico tras tu lesión 2024-01-15."),
+            ("Rodaje Z2", 35, "Z2", 5.2,
+             "Mantén intensidad baja. Cadencia objetivo 170 spm con drills en lugar."),
+            ("Movilidad", 30, "Z1", None,
+             "Recuperación activa. Calistenia + foam roller."),
+            ("Rodaje largo Z2", 60, "Z2", 9.0,
+             "Sesión clave de la semana. Aumenta volumen aeróbico hacia tu meta 21K."),
+        ]
+        if building
+        else [
+            ("Tempo Z3", 35, "Z3", 6.0,
+             "Tu baseline HRV está estable — toca primera sesión de calidad de la semana."),
+            ("Fuerza", 45, "—", None,
+             "Núcleo + sóleo excéntrico. Protocolo de prevención post-lesión."),
+            ("Rodaje Z2", 50, "Z2", 7.5,
+             "Reconstrucción aeróbica entre sesiones intensas."),
+            ("Series Z4", 40, "Z4", 6.0,
+             "8x400 en Z4 con recuperación Z1. Activa VO2max para acercarte a sub-1:50."),
+            ("Rodaje largo Z2", 80, "Z2", 12.0,
+             "Long run de fin de semana. Base aeróbica para la maratón media."),
+        ]
+    )
+
+    day_names = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
+    sessions: list[UpcomingTraining] = []
+    for i, (typ, dur, zone, dist, why) in enumerate(template):
+        d = today + timedelta(days=i + 1)
+        label = (
+            "Mañana" if i == 0
+            else "Pasado mañana" if i == 1
+            else day_names[d.weekday()]
+        )
+        sessions.append(
+            UpcomingTraining(
+                day_label=f"{label} · {d.strftime('%d %b').lower()}",
+                relative_days=i + 1,
+                type=typ,
+                duration_min=dur,
+                zone_target=zone,
+                distance_km=dist,
+                rationale=why,
+            )
+        )
+    return UpcomingTrainingsOut(sessions=sessions)
 
 
 def _build_weekly(session: Session, user_id: str) -> WeeklyOut:
@@ -112,6 +177,18 @@ def get_weekly(
 
 
 @router.get(
+    "/upcoming-trainings",
+    response_model=UpcomingTrainingsOut,
+    summary="Próximos 5 entrenamientos planificados",
+)
+def get_upcoming(
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
+) -> UpcomingTrainingsOut:
+    return _build_upcoming(db, user_id)
+
+
+@router.get(
     "/dashboard",
     response_model=DashboardOut,
     summary="Payload agregado del dashboard (1 sola request)",
@@ -133,5 +210,6 @@ def get_dashboard(
         profile=ProfileOut.model_validate(profile, from_attributes=True),
         hrv=_build_hrv(db, user_id),
         weekly=_build_weekly(db, user_id),
+        upcoming=_build_upcoming(db, user_id),
         days_to_goal=days_to_goal,
     )

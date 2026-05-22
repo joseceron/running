@@ -66,12 +66,127 @@ class WeeklyOut(BaseModel):
     weeks: list[WeeklyEntry]
 
 
+class ActivitySplit(BaseModel):
+    km: int
+    time_secs: int = Field(..., example=478)  # 7:58
+    pace: str = Field(..., example="7:58")
+    avg_hr: int
+    max_hr: int
+    cadence: int
+    stride_m: float
+    gct_ms: int
+    elevation_gain_m: float
+
+
+class ActivitySample(BaseModel):
+    """Punto de la serie temporal dentro de la actividad."""
+
+    t_secs: int  # tiempo desde inicio
+    distance_km: float
+    pace_secs_per_km: int | None = None
+    hr: int | None = None
+    cadence: int | None = None
+    elevation_m: int | None = None
+    power_w: int | None = None
+
+
+class ActivityDetailOut(BaseModel):
+    activity_id: str
+    name: str
+    started_at: str = Field(..., example="2026-05-21T07:22:00")
+    type: Literal["run", "walk", "bike", "swim"] = "run"
+    distance_km: float
+    duration_secs: int
+    avg_pace: str = Field(..., example="9:21")
+    avg_hr: int
+    max_hr: int
+    elevation_gain_m: int
+    calories: int
+    avg_cadence: int
+    avg_stride_m: float
+    avg_gct_ms: int
+    training_effect_aerobic: float
+    zone_distribution_pct: list[float] = Field(..., example=[10, 70, 18, 2, 0])
+    samples: list[ActivitySample]
+    splits: list[ActivitySplit]
+
+
+class CronologiaPoint(BaseModel):
+    """Un punto en la cronología 24h (hora decimal + valores)."""
+
+    hour: float = Field(..., example=14.5, description="Hora decimal 0-24")
+    body_battery: int | None = Field(None, example=68)
+    stress: int | None = Field(None, example=45, description="0-100")
+    is_sleeping: bool = False
+    is_active: bool = False
+
+
+class CronologiaActivity(BaseModel):
+    hour: float
+    label: str = Field(..., example="Popayán Carrera")
+    type: str = Field(..., example="run")
+
+
+class CronologiaOut(BaseModel):
+    points: list[CronologiaPoint]
+    activities: list[CronologiaActivity]
+    summary: dict = Field(
+        ...,
+        example={
+            "body_battery_start": 100,
+            "body_battery_end": 52,
+            "body_battery_max": 100,
+            "body_battery_min": 48,
+            "stress_avg": 22,
+            "stress_max": 78,
+            "sleep_duration_min": 392,
+        },
+    )
+
+
+class DiagnosisOut(BaseModel):
+    """Diagnóstico del día generado por Claude (orchestrator v2)."""
+
+    narrative: str = Field(..., example="Tu HRV de 52 ms está dentro del rango funcional...")
+    action: str = Field(..., example="Hoy: rodaje Z2 de 35-40 min con drills de cadencia.")
+    citation: str = Field(..., example="Seiler (2010) · Int J Sports Physiol Perform · Review")
+    alert_level: Literal["info", "warn", "danger"] = Field(..., example="info")
+    generated_at: str = Field(..., example="2026-05-21T22:30:00Z")
+
+
+class UpcomingTraining(BaseModel):
+    """Una sesión de entrenamiento planificada."""
+
+    day_label: str = Field(..., example="Mañana · Vie 22 may")
+    relative_days: int = Field(..., example=1, description="Días desde hoy (0=hoy)")
+    type: Literal[
+        "Rodaje Z2",
+        "Series Z4",
+        "Tempo Z3",
+        "Rodaje largo Z2",
+        "Fuerza",
+        "Movilidad",
+        "Descanso",
+    ]
+    duration_min: int = Field(..., example=40)
+    zone_target: Literal["Z1", "Z2", "Z3", "Z4", "Z5", "—"] = Field(..., example="Z2")
+    distance_km: float | None = Field(None, example=6.5)
+    rationale: str = Field(
+        ..., example="Tu HRV está construyendo baseline — Z2 favorece la adaptación aeróbica sin estrés autónomo."
+    )
+
+
+class UpcomingTrainingsOut(BaseModel):
+    sessions: list[UpcomingTraining]
+
+
 class DashboardOut(BaseModel):
     """Payload agregado consumido por la home del dashboard."""
 
     profile: ProfileOut
     hrv: HRVOut
     weekly: WeeklyOut
+    upcoming: UpcomingTrainingsOut
     days_to_goal: int | None = Field(
         None, description="Días desde hoy hasta la fecha de la meta"
     )

@@ -57,10 +57,111 @@ export type Weekly = {
   weeks: WeeklyEntry[];
 };
 
+export type ActivitySample = {
+  t_secs: number;
+  distance_km: number;
+  pace_secs_per_km: number | null;
+  hr: number | null;
+  cadence: number | null;
+  elevation_m: number | null;
+  power_w: number | null;
+};
+
+export type ActivitySplit = {
+  km: number;
+  time_secs: number;
+  pace: string;
+  avg_hr: number;
+  max_hr: number;
+  cadence: number;
+  stride_m: number;
+  gct_ms: number;
+  elevation_gain_m: number;
+};
+
+export type ActivityDetail = {
+  activity_id: string;
+  name: string;
+  started_at: string;
+  type: "run" | "walk" | "bike" | "swim";
+  distance_km: number;
+  duration_secs: number;
+  avg_pace: string;
+  avg_hr: number;
+  max_hr: number;
+  elevation_gain_m: number;
+  calories: number;
+  avg_cadence: number;
+  avg_stride_m: number;
+  avg_gct_ms: number;
+  training_effect_aerobic: number;
+  zone_distribution_pct: number[];
+  samples: ActivitySample[];
+  splits: ActivitySplit[];
+};
+
+export type CronologiaPoint = {
+  hour: number;
+  body_battery: number | null;
+  stress: number | null;
+  is_sleeping: boolean;
+  is_active: boolean;
+};
+
+export type CronologiaActivity = {
+  hour: number;
+  label: string;
+  type: string;
+};
+
+export type Cronologia = {
+  points: CronologiaPoint[];
+  activities: CronologiaActivity[];
+  summary: {
+    body_battery_start: number;
+    body_battery_end: number;
+    body_battery_max: number;
+    body_battery_min: number;
+    stress_avg: number;
+    stress_max: number;
+    sleep_duration_min: number;
+  };
+};
+
+export type Diagnosis = {
+  narrative: string;
+  action: string;
+  citation: string;
+  alert_level: "info" | "warn" | "danger";
+  generated_at: string;
+};
+
+export type UpcomingTraining = {
+  day_label: string;
+  relative_days: number;
+  type:
+    | "Rodaje Z2"
+    | "Series Z4"
+    | "Tempo Z3"
+    | "Rodaje largo Z2"
+    | "Fuerza"
+    | "Movilidad"
+    | "Descanso";
+  duration_min: number;
+  zone_target: "Z1" | "Z2" | "Z3" | "Z4" | "Z5" | "—";
+  distance_km: number | null;
+  rationale: string;
+};
+
+export type UpcomingTrainings = {
+  sessions: UpcomingTraining[];
+};
+
 export type Dashboard = {
   profile: Profile;
   hrv: HRV;
   weekly: Weekly;
+  upcoming: UpcomingTrainings;
   days_to_goal: number | null;
 };
 
@@ -79,6 +180,11 @@ export const liebreApi = {
   profile: () => fetchJson<Profile>("/v1/users/me/profile"),
   hrv: () => fetchJson<HRV>("/v1/users/me/hrv"),
   weekly: () => fetchJson<Weekly>("/v1/users/me/weekly"),
+  upcoming: () => fetchJson<UpcomingTrainings>("/v1/users/me/upcoming-trainings"),
+  diagnosis: () => fetchJson<Diagnosis>("/v1/users/me/diagnosis"),
+  cronologia: () => fetchJson<Cronologia>("/v1/users/me/cronologia"),
+  activity: (id: string) =>
+    fetchJson<ActivityDetail>(`/v1/users/me/activities/${id}`),
 };
 
 export function formatGoalTime(secs: number | null): string {
