@@ -1,10 +1,10 @@
 /**
- * ActivityHeader — barra de KPIs principales de una actividad.
- * Replica el patrón Connect: 5-6 KPIs grandes en fila con separadores.
+ * ActivityHeader — 6 KPIs + Training Effect + ZoneBar + sub-métricas con glosario.
  */
 
 import type { ActivityDetail } from "@/lib/api";
 import { ZoneBar } from "./ZoneBar";
+import { Term } from "./Term";
 
 function fmtDuration(secs: number): string {
   const h = Math.floor(secs / 3600);
@@ -27,13 +27,13 @@ function fmtDateTime(iso: string): string {
 }
 
 export function ActivityHeader({ activity }: { activity: ActivityDetail }) {
-  const kpis: Array<[string, string]> = [
-    ["Distancia", `${activity.distance_km.toFixed(2)} km`],
-    ["Tiempo", fmtDuration(activity.duration_secs)],
-    ["Ritmo medio", `${activity.avg_pace} /km`],
-    ["FC media", `${activity.avg_hr} lpm`],
-    ["Ascenso", `${activity.elevation_gain_m} m`],
-    ["Calorías", `${activity.calories}`],
+  const kpis: Array<[string, string, React.ReactNode]> = [
+    ["Distancia", `${activity.distance_km.toFixed(2)} km`, null],
+    ["Tiempo", fmtDuration(activity.duration_secs), null],
+    ["Ritmo medio", `${activity.avg_pace} /km`, <Term key="r" k="ritmo">Ritmo medio</Term>],
+    ["FC media", `${activity.avg_hr} lpm`, null],
+    ["Ascenso", `${activity.elevation_gain_m} m`, null],
+    ["Calorías", `${activity.calories}`, null],
   ];
 
   return (
@@ -51,7 +51,9 @@ export function ActivityHeader({ activity }: { activity: ActivityDetail }) {
           </p>
         </div>
         <div className="text-right shrink-0">
-          <p className="label-uppercase">Training effect</p>
+          <p className="label-uppercase">
+            <Term k="training_effect">Training effect</Term>
+          </p>
           <p className="metric-display text-3xl mt-1 text-ink-primary">
             {activity.training_effect_aerobic.toFixed(1)}
           </p>
@@ -62,9 +64,9 @@ export function ActivityHeader({ activity }: { activity: ActivityDetail }) {
       </div>
 
       <div className="grid grid-cols-3 md:grid-cols-6 gap-4 pb-4 border-b border-rule/40">
-        {kpis.map(([label, value]) => (
+        {kpis.map(([label, value, termNode]) => (
           <div key={label}>
-            <p className="label-uppercase">{label}</p>
+            <p className="label-uppercase">{termNode ?? label}</p>
             <p className="metric-display text-xl mt-1 text-ink-primary">
               {value}
             </p>
@@ -73,22 +75,40 @@ export function ActivityHeader({ activity }: { activity: ActivityDetail }) {
       </div>
 
       <div className="mt-4">
-        <p className="label-uppercase mb-2">Distribución por zonas FC</p>
+        <p className="label-uppercase mb-2">Distribución por zonas de FC</p>
         <ZoneBar
           values={activity.zone_distribution_pct as [number, number, number, number, number]}
         />
       </div>
 
       <div className="mt-4 grid md:grid-cols-3 gap-3 text-xs">
-        <Stat label="Cadencia media" value={`${activity.avg_cadence} spm`} />
-        <Stat label="Longitud zancada" value={`${activity.avg_stride_m.toFixed(2)} m`} />
-        <Stat label="GCT medio" value={`${activity.avg_gct_ms} ms`} />
+        <Stat
+          label={<Term k="cadencia">Cadencia media</Term>}
+          value={`${activity.avg_cadence} `}
+          unit={<Term k="spm">spm</Term>}
+        />
+        <Stat
+          label={<Term k="zancada">Longitud zancada</Term>}
+          value={`${activity.avg_stride_m.toFixed(2)} m`}
+        />
+        <Stat
+          label={<Term k="gct">GCT medio</Term>}
+          value={`${activity.avg_gct_ms} ms`}
+        />
       </div>
     </div>
   );
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
+function Stat({
+  label,
+  value,
+  unit,
+}: {
+  label: React.ReactNode;
+  value: string;
+  unit?: React.ReactNode;
+}) {
   return (
     <div
       className="rounded-md px-3 py-2"
@@ -97,7 +117,10 @@ function Stat({ label, value }: { label: string; value: string }) {
       <p className="text-[10px] text-ink-tertiary uppercase tracking-wider">
         {label}
       </p>
-      <p className="tnum font-semibold text-ink-primary mt-0.5">{value}</p>
+      <p className="tnum font-semibold text-ink-primary mt-0.5">
+        {value}
+        {unit && <span className="ml-1 text-ink-tertiary font-normal">{unit}</span>}
+      </p>
     </div>
   );
 }

@@ -1,16 +1,13 @@
 /**
- * SyncedChartStack — stack vertical de gráficos sincronizados, replica de
- * la arquitectura Highcharts de Connect en la vista de actividad.
- *
- * Cada gráfico ~120px de alto, comparten el eje X (tiempo). En hover,
- * crosshair vertical sincronizado entre todos + tooltip flotante con todos
- * los valores del punto.
+ * SyncedChartStack — stack vertical de gráficos sincronizados.
+ * Formato corregido: ritmo siempre como mm:ss, "prom/mín/máx" en español.
  */
 
 "use client";
 
 import { useRef, useState } from "react";
 import type { ActivitySample } from "@/lib/api";
+import { Term } from "./Term";
 
 const W = 760;
 const PLOT_H = 110;
@@ -19,14 +16,20 @@ const PAD = { l: 56, r: 16, t: 10, b: 22 };
 type Series = {
   key: "hr" | "pace" | "elevation" | "cadence" | "power";
   label: string;
+  termKey?: "ritmo" | "cadencia" | "ppm";
   unit: string;
   color: string;
   fillColor: string;
-  format?: (v: number) => string;
-  /** Invertir eje Y (para ritmo: más rápido = más arriba). */
+  format: (v: number) => string;
   invert?: boolean;
-  /** Render dots (scatter) en lugar de área. */
   scatter?: boolean;
+};
+
+const fmtNum = (v: number) => String(Math.round(v));
+const fmtFloat1 = (v: number) => v.toFixed(1);
+const fmtPace = (v: number) => {
+  const s = Math.max(0, Math.round(v));
+  return `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, "0")}`;
 };
 
 const SERIES: Series[] = [
@@ -36,30 +39,35 @@ const SERIES: Series[] = [
     unit: "m",
     color: "var(--chart-altitude-line)",
     fillColor: "var(--chart-altitude-fill)",
+    format: fmtNum,
   },
   {
     key: "pace",
     label: "Ritmo",
+    termKey: "ritmo",
     unit: "min/km",
     color: "var(--chart-pace-line)",
     fillColor: "var(--chart-pace-fill)",
     invert: true,
-    format: (v: number) =>
-      `${Math.floor(v / 60)}:${(v % 60).toString().padStart(2, "0")}`,
+    format: fmtPace,
   },
   {
     key: "hr",
-    label: "Frecuencia cardiaca",
+    label: "Frecuencia cardíaca",
+    termKey: "ppm",
     unit: "ppm",
     color: "var(--chart-hr-line)",
     fillColor: "var(--chart-hr-fill)",
+    format: fmtNum,
   },
   {
     key: "cadence",
     label: "Cadencia",
+    termKey: "cadencia",
     unit: "spm",
     color: "var(--chart-cadence-mid)",
     fillColor: "transparent",
+    format: fmtNum,
     scatter: true,
   },
   {
@@ -68,6 +76,7 @@ const SERIES: Series[] = [
     unit: "W",
     color: "var(--chart-power-line)",
     fillColor: "var(--chart-power-fill)",
+    format: fmtNum,
   },
 ];
 
@@ -103,8 +112,16 @@ function ChartOne({
   if (validSamples.length < 2) return null;
 
   const values = validSamples.map((s) => getValue(s, series.key)!);
-  let min = Math.min(...values);
-  let max = Math.max(...values);
+
+  // Filtrar outliers extremos de ritmo (ej: caminata muy lenta)
+  const sorted = [...values].sort((a, b) => a - b);
+  const p5 = sorted[Math.floor(sorted.length * 0.05)];
+  const p95 = sorted[Math.floor(sorted.length * 0.95)];
+  let min = series.key === "pace" ? p5 : Math.min(...values);
+  let max = series.key === "pace" ? p95 : Math.max(...values);
+
+  const realMin = Math.min(...values);
+  const realMax = Math.max(...values);
   const padR = (max - min) * 0.12 || 1;
   min = Math.max(0, min - padR);
   max += padR;
@@ -112,19 +129,18 @@ function ChartOne({
 
   const x = (t: number) => PAD.l + (t / totalSecs) * (W - PAD.l - PAD.r);
   const y = (v: number) => {
-    const norm = (v - min) / (max - min);
+    const clamped = Math.max(min, Math.min(max, v));
+    const norm = (clamped - min) / (max - min);
     return series.invert
       ? PAD.t + norm * PLOT_H
       : PAD.t + (1 - norm) * PLOT_H;
   };
 
-  const fmt = series.format ?? ((v: number) => String(Math.round(v)));
-
   const pts = validSamples
     .map((s) => `${x(s.t_secs).toFixed(1)},${y(getValue(s, series.key)!).toFixed(1)}`)
     .join(" ");
 
-  const baselineY = series.invert ? PAD.t + PLOT_H : PAD.t + PLOT_H;
+  const baselineY = PAD.t + PLOT_H;
   const areaPath = `M ${x(validSamples[0].t_secs).toFixed(1)},${baselineY} L ${pts.split(" ").join(" L ")} L ${x(validSamples[validSamples.length - 1].t_secs).toFixed(1)},${baselineY} Z`;
 
   const totalH = PLOT_H + PAD.t + PAD.b;
@@ -139,40 +155,45 @@ function ChartOne({
 
   return (
     <div>
-      {/* Header del gráfico */}
-      <div className="flex items-baseline justify-between text-xs px-1 mb-1.5">
+      <div className="flex items-baseline justify-between text-xs px-1 mb-1.5 gap-2">
         <div className="flex items-center gap-2">
           <span
-            className="w-2.5 h-2.5 rounded-full"
+            className="w-2.5 h-2.5 rounded-full shrink-0"
             style={{ background: series.color }}
           />
-          <span className="font-semibold text-ink-primary">{series.label}</span>
+          <span className="font-semibold text-ink-primary">
+            {series.termKey ? (
+              <Term k={series.termKey}>{series.label}</Term>
+            ) : (
+              series.label
+            )}
+          </span>
           <span className="text-ink-tertiary text-[10px]">{series.unit}</span>
         </div>
-        <div className="flex items-center gap-3 text-[10px] text-ink-tertiary">
+        <div className="flex items-center gap-3 text-[10px] text-ink-tertiary tnum">
           <span>
-            min{" "}
-            <span className="tnum text-ink-secondary font-medium">
-              {fmt(Math.min(...values))}
+            mín{" "}
+            <span className="text-ink-secondary font-medium">
+              {series.format(realMin)}
             </span>
           </span>
           <span>
-            avg{" "}
-            <span className="tnum font-semibold" style={{ color: series.color }}>
-              {fmt(avg)}
+            prom{" "}
+            <span className="font-semibold" style={{ color: series.color }}>
+              {series.format(avg)}
             </span>
           </span>
           <span>
-            max{" "}
-            <span className="tnum text-ink-secondary font-medium">
-              {fmt(Math.max(...values))}
+            máx{" "}
+            <span className="text-ink-secondary font-medium">
+              {series.format(realMax)}
             </span>
           </span>
           {hoverSample && (
             <span className="ml-2 pl-2 border-l border-rule/60">
               ahora{" "}
-              <span className="tnum font-bold" style={{ color: series.color }}>
-                {fmt(getValue(hoverSample, series.key)!)}
+              <span className="font-bold" style={{ color: series.color }}>
+                {series.format(getValue(hoverSample, series.key)!)}
               </span>
             </span>
           )}
@@ -194,11 +215,11 @@ function ChartOne({
         }}
         onMouseLeave={() => setHoverT(null)}
       >
-        {/* Etiquetas eje Y (min, avg, max) */}
+        {/* Etiquetas eje Y */}
         {[
-          { v: max, label: fmt(max) },
-          { v: avg, label: `avg ${fmt(avg)}` },
-          { v: min, label: fmt(min) },
+          { v: max, label: series.format(max) },
+          { v: avg, label: `prom ${series.format(avg)}` },
+          { v: min, label: series.format(min) },
         ].map((item, i) => (
           <text
             key={i}
@@ -208,14 +229,13 @@ function ChartOne({
             fontSize={9}
             fill={i === 1 ? series.color : "var(--ink-tertiary)"}
             fontFamily="Inter"
-            style={{ fontVariantNumeric: "tabular-nums" }}
             fontWeight={i === 1 ? 600 : 400}
+            style={{ fontVariantNumeric: "tabular-nums" }}
           >
             {item.label}
           </text>
         ))}
 
-        {/* Línea de avg */}
         <line
           x1={PAD.l}
           y1={y(avg)}
@@ -227,7 +247,6 @@ function ChartOne({
           opacity={0.4}
         />
 
-        {/* Render serie */}
         {series.scatter ? (
           validSamples.map((s, i) => {
             const v = getValue(s, series.key)!;
@@ -255,7 +274,6 @@ function ChartOne({
           </>
         )}
 
-        {/* Crosshair vertical sincronizado */}
         {hoverT !== null && (
           <>
             <line
@@ -305,8 +323,8 @@ export function SyncedChartStack({ samples }: { samples: ActivitySample[] }) {
         <div>
           <span className="label-uppercase">Gráficas sincronizadas</span>
           <p className="text-[11px] text-ink-tertiary mt-1">
-            Hover sobre cualquier gráfico — el crosshair y los valores se
-            sincronizan en todos
+            Pasa el cursor sobre cualquier gráfico — el crosshair y los valores
+            se sincronizan en todos
           </p>
         </div>
         {hoverSample && (
@@ -314,7 +332,10 @@ export function SyncedChartStack({ samples }: { samples: ActivitySample[] }) {
             <p className="label-uppercase" style={{ fontSize: 9 }}>
               Tiempo · distancia
             </p>
-            <p className="tnum text-sm font-bold text-accent-brand mt-0.5">
+            <p
+              className="text-sm font-bold text-accent-brand mt-0.5"
+              style={{ fontVariantNumeric: "tabular-nums" }}
+            >
               {fmtTime(hoverSample.t_secs)} ·{" "}
               {hoverSample.distance_km.toFixed(2)} km
             </p>

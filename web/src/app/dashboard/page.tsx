@@ -32,15 +32,14 @@ export default async function DashboardPage() {
     return (
       <main className="min-h-screen flex items-center justify-center p-8 bg-bg-page">
         <div className="max-w-md text-center card">
-          <p className="label-uppercase" style={{ color: "var(--semantic-danger)" }}>
+          <p
+            className="label-uppercase"
+            style={{ color: "var(--semantic-danger)" }}
+          >
             API no disponible
           </p>
           <p className="text-lg text-ink-primary my-3">
-            No pude conectar con el backend de Liebre.
-          </p>
-          <p className="text-sm text-ink-secondary">
-            Verifica que <code>uvicorn api.main:app --port 8080</code> esté
-            corriendo y que el Postgres local esté arriba.
+            No pude conectar con el backend.
           </p>
           <p className="text-xs text-ink-tertiary mt-3 font-mono">{String(err)}</p>
         </div>
@@ -55,14 +54,11 @@ export default async function DashboardPage() {
     <div className="min-h-screen bg-bg-page">
       <Sidebar userName={profile.name} />
 
-      <main
-        className="min-h-screen"
-        style={{ marginLeft: "var(--sidebar-width)" }}
-      >
-        <div className="max-w-6xl mx-auto px-8 py-8">
+      <main className="min-h-screen md:ml-[var(--sidebar-width)] pb-24 md:pb-0">
+        <div className="max-w-6xl mx-auto px-4 md:px-8 py-6 md:py-8">
           <TopBar userName={profile.name} title="resumen del día" />
 
-          {/* DIAGNÓSTICO DEL DÍA — el diferenciador Liebre, va arriba */}
+          {/* DIAGNÓSTICO + META */}
           <section
             className="grid md:grid-cols-3 gap-4"
             style={{ gridAutoRows: "min-content" }}
@@ -82,19 +78,19 @@ export default async function DashboardPage() {
             <ProfileCard profile={profile} />
           </section>
 
-          {/* Cronología 24h — el componente estrella de Connect */}
+          {/* Cronología 24h */}
           {cronologia && (
             <section className="grid grid-cols-1 gap-4 mt-4">
               <Cronologia24h cronologia={cronologia} />
             </section>
           )}
 
-          {/* Próximos entrenos — span completo, alta visibilidad */}
+          {/* Próximos entrenos */}
           <section className="grid grid-cols-1 gap-4 mt-4">
             <UpcomingTrainingsCard upcoming={upcoming} />
           </section>
 
-          {/* Factores de impacto + Semanal */}
+          {/* Factores + Semanal */}
           <section className="grid md:grid-cols-2 gap-4 mt-4">
             <FactorImpactList
               hrv={{
@@ -111,17 +107,7 @@ export default async function DashboardPage() {
 
           <footer className="mt-10 pt-6 border-t border-rule/30">
             <p className="text-xs text-ink-tertiary text-center">
-              Datos en vivo · API en{" "}
-              <code className="text-ink-secondary">localhost:8080</code> ·{" "}
-              <a
-                href="http://localhost:8080/docs"
-                target="_blank"
-                rel="noreferrer"
-                className="text-accent-brand hover:underline"
-              >
-                ver Swagger
-              </a>{" "}
-              · diseño basado en Garmin Connect + capa Liebre
+              Datos en vivo desde Garmin · diseño basado en Connect + capa Liebre
             </p>
           </footer>
         </div>

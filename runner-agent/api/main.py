@@ -15,7 +15,7 @@ from __future__ import annotations
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from api.routers import activities, cronologia, dashboard, diagnosis, health
+from api.routers import activities, cronologia, dashboard, diagnosis, health, sync
 from api.settings import settings
 
 app = FastAPI(
@@ -43,6 +43,7 @@ app.include_router(dashboard.router, prefix=settings.api_v1_prefix)
 app.include_router(diagnosis.router, prefix=settings.api_v1_prefix)
 app.include_router(cronologia.router, prefix=settings.api_v1_prefix)
 app.include_router(activities.router, prefix=settings.api_v1_prefix)
+app.include_router(sync.router, prefix=settings.api_v1_prefix)
 
 
 @app.get("/", include_in_schema=False)

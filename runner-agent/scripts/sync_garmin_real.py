@@ -241,7 +241,10 @@ def _sync_last_activity(client: GarminConnectClient, user_id: str) -> bool:
     i_dist = idx("sumDistance")
     i_pace = idx("directSpeed")
     i_hr = idx("directHeartRate")
-    i_cad = idx("directRunCadence") or idx("directDoubleCadence")
+    # directDoubleCadence = total steps por minuto (ambos pies).
+    # directRunCadence = pasos por pie (la mitad del valor que esperamos mostrar).
+    # Preferimos el primero para que la cadencia salga en el rango 140-180 spm habitual.
+    i_cad = idx("directDoubleCadence") or idx("directRunCadence")
     i_elev = idx("directElevation")
     i_pow = idx("directPower")
 
