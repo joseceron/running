@@ -81,7 +81,7 @@ export default function HomePage() {
         style={{
           position: "relative",
           overflow: "hidden",
-          background: `radial-gradient(ellipse 80% 60% at 50% 0%, #0d2044 0%, ${C.bg} 70%)`,
+          background: C.bg,
         }}
       >
         {/* Grid pattern animado */}
@@ -95,40 +95,43 @@ export default function HomePage() {
           }}
         />
 
-        {/* Orbs flotantes (gradient blobs con blur) */}
+        {/* Orbs flotantes (gradient blobs con blur + mix-blend screen) */}
         <div
           className="liebre-orb"
           style={{
-            width: 480,
-            height: 480,
-            top: "-180px",
-            left: "10%",
-            background: "radial-gradient(circle, #2f81f7 0%, transparent 65%)",
-            opacity: 0.35,
+            width: 620,
+            height: 620,
+            top: "-220px",
+            left: "5%",
+            background:
+              "radial-gradient(circle, #2f81f7 0%, rgba(47,129,247,0.5) 30%, transparent 70%)",
+            opacity: 0.85,
             animationDelay: "0s",
           }}
         />
         <div
           className="liebre-orb"
           style={{
-            width: 380,
-            height: 380,
-            top: "60px",
-            right: "8%",
-            background: "radial-gradient(circle, #a5a0ff 0%, transparent 65%)",
-            opacity: 0.28,
+            width: 500,
+            height: 500,
+            top: "20px",
+            right: "0%",
+            background:
+              "radial-gradient(circle, #a5a0ff 0%, rgba(165,160,255,0.5) 30%, transparent 70%)",
+            opacity: 0.7,
             animationDelay: "-7s",
           }}
         />
         <div
           className="liebre-orb"
           style={{
-            width: 320,
-            height: 320,
-            bottom: "-120px",
-            left: "30%",
-            background: "radial-gradient(circle, #3fb950 0%, transparent 65%)",
-            opacity: 0.22,
+            width: 420,
+            height: 420,
+            bottom: "-160px",
+            left: "35%",
+            background:
+              "radial-gradient(circle, #3fb950 0%, rgba(63,185,80,0.45) 30%, transparent 70%)",
+            opacity: 0.55,
             animationDelay: "-13s",
           }}
         />

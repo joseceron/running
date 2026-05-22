@@ -371,10 +371,11 @@ body {
 .liebre-orb {
   position: absolute;
   border-radius: 50%;
-  filter: blur(80px);
+  filter: blur(60px);
   pointer-events: none;
   animation: liebre-orb-float 20s ease-in-out infinite;
   will-change: transform;
+  mix-blend-mode: screen;
 }
 
 /* Grid pattern animado */
