@@ -40,6 +40,16 @@ export const PAIN_POINTS = [
     title: "Sin respaldo científico específico",
     body: "Connect da instrucciones. Liebre cita el paper que respalda cada decisión: título, año, journal, nivel de evidencia (RCT / meta-análisis / cohorte).",
   },
+  {
+    icon: "📈",
+    title: "Otras apps adaptativas no muestran tu salud",
+    body: "One Running ($14.99/mes) y Runna ($19.99) hacen planes que se ajustan a tu fatiga, pero NO te muestran tu HRV, sueño profundo, Body Battery ni cronología 24h. Liebre visualiza e interpreta cada métrica de tu reloj — no solo la usa internamente.",
+  },
+  {
+    icon: "⌚",
+    title: "Hoy: integración nativa con Garmin",
+    body: "Sincronización directa con Garmin Connect — HRV, running dynamics, Body Battery, sueño y actividad por minuto. Coros, Polar y Apple Health en el roadmap del próximo trimestre.",
+  },
 ] as const;
 
 export const COMPARISON: Array<{
@@ -220,12 +230,22 @@ export const REAL_DATA_CARDS = [
   },
 ] as const;
 
+/** Tasa de cambio USD→COP referencial. Lanzamiento Colombia.
+ *  Convertir a fetch dinámico en producción si el delta importa. */
+export const USD_TO_COP = 4000;
+
+export function fmtCOP(usd: number): string {
+  const cop = Math.round((usd * USD_TO_COP) / 1000) * 1000;
+  return `$${cop.toLocaleString("es-CO")}`;
+}
+
 export const PLANS = [
   {
     tier: "Esencial",
-    price: 19,
+    price: 12,
     badge: null,
     features: [
+      "Sincronización nativa con Garmin Connect",
       "Reporte matutino diario (HRV + carga + recomendación)",
       "Análisis post-sesión automático",
       "Módulos 1, 3 y 7 (zonas, ACWR, tendencias)",
@@ -233,11 +253,11 @@ export const PLANS = [
       "Historial de 6 meses",
     ],
     footnote:
-      "Garmin Connect+ cuesta $8.99/mes — sin análisis de zonas, sin ACWR, sin lesiones",
+      "Garmin Connect+ ($8.99) muestra datos sin interpretar. One Running ($14.99) hace planes adaptativos pero NO visualiza tu HRV, sueño ni Body Battery.",
   },
   {
     tier: "Pro",
-    price: 39,
+    price: 29,
     badge: "Recomendado",
     features: [
       "Todo lo de Esencial",

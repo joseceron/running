@@ -1,0 +1,47 @@
+# Firebase App Hosting — config del backend para el frontend Next.js de Liebre.
+# Docs: https://firebase.google.com/docs/app-hosting/configure
+
+runConfig:
+  minInstances: 0
+  maxInstances: 5
+  concurrency: 80
+  cpu: 1
+  memoryMiB: 512
+
+env:
+  # Variables expuestas al runtime + build (NEXT_PUBLIC_*)
+  - variable: NEXT_PUBLIC_LIEBRE_API
+    value: https://liebre-api-948756297403.us-east1.run.app
+    availability:
+      - BUILD
+      - RUNTIME
+
+  - variable: NEXT_PUBLIC_SITE_URL
+    value: https://liebre.run
+    availability:
+      - BUILD
+      - RUNTIME
+
+  - variable: NEXT_PUBLIC_FIREBASE_API_KEY
+    value: AIzaSyC90BuIKLJXGYC3s1P_vKqxas0k9Xn7FKk
+    availability:
+      - BUILD
+      - RUNTIME
+
+  - variable: NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
+    value: liebre-mvp.firebaseapp.com
+    availability:
+      - BUILD
+      - RUNTIME
+
+  - variable: NEXT_PUBLIC_FIREBASE_PROJECT_ID
+    value: liebre-mvp
+    availability:
+      - BUILD
+      - RUNTIME
+
+  - variable: NEXT_PUBLIC_FIREBASE_APP_ID
+    value: 1:948756297403:web:ba0b3b98d7192108291b9e
+    availability:
+      - BUILD
+      - RUNTIME

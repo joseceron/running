@@ -7,7 +7,16 @@
 
 import { GaugeCircular270 } from "./GaugeCircular270";
 import { CiteBadge } from "./CiteBadge";
+import { Term } from "./Term";
 import type { HRV } from "@/lib/api";
+
+function fmtShortDate(iso: string): string {
+  // "2026-05-21" → "21 may"
+  const d = new Date(iso + "T00:00:00");
+  const day = d.getDate();
+  const month = d.toLocaleString("es-CO", { month: "short" }).replace(".", "");
+  return `${day} ${month}`;
+}
 
 const STATUS_LABEL: Record<HRV["status"], string> = {
   optimal: "Equilibrado",
@@ -42,9 +51,11 @@ function Sparkline({
   if (nights.length < 2) return null;
   const chronological = [...nights].reverse();
   const values = chronological.map((n) => n.hrv_rmssd);
-  const W = 260;
-  const H = 56;
-  const pad = { l: 4, r: 4, t: 6, b: 6 };
+  const minVal = Math.min(...values);
+  const maxVal = Math.max(...values);
+  const W = 280;
+  const H = 90;
+  const pad = { l: 32, r: 8, t: 8, b: 18 };
   const refMin = baseline ? baseline * 0.94 : null;
   const refMax = baseline ? baseline * 1.06 : null;
   const min = Math.min(...values, refMin ?? Infinity) - 1;
@@ -56,16 +67,34 @@ function Sparkline({
   const y = (v: number) =>
     H - pad.b - ((v - min) / range) * (H - pad.t - pad.b);
 
-  const points = values.map((v, i) => `${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(" ");
+  const points = values
+    .map((v, i) => `${x(i).toFixed(1)},${y(v).toFixed(1)}`)
+    .join(" ");
+
+  // Etiquetas X: primera, media, última
+  const xIndices = [0, Math.floor(values.length / 2), values.length - 1];
+
+  // Etiquetas Y: máx, baseline (si existe), mín
+  const yTicks: Array<{ v: number; label: string; emphasis: boolean }> = [
+    { v: maxVal, label: `${Math.round(maxVal)} ms`, emphasis: false },
+  ];
+  if (baseline !== null) {
+    yTicks.push({
+      v: baseline,
+      label: `${Math.round(baseline)} ms`,
+      emphasis: true,
+    });
+  }
+  yTicks.push({ v: minVal, label: `${Math.round(minVal)} ms`, emphasis: false });
 
   return (
     <svg
       width="100%"
       height={H}
       viewBox={`0 0 ${W} ${H}`}
-      preserveAspectRatio="none"
       className="block"
     >
+      {/* Banda del rango personal */}
       {refMin !== null && refMax !== null && (
         <rect
           x={pad.l}
@@ -76,6 +105,8 @@ function Sparkline({
           fillOpacity={0.07}
         />
       )}
+
+      {/* Línea baseline */}
       {baseline !== null && (
         <line
           x1={pad.l}
@@ -87,6 +118,25 @@ function Sparkline({
           strokeDasharray="3 3"
         />
       )}
+
+      {/* Etiquetas eje Y */}
+      {yTicks.map((t, i) => (
+        <text
+          key={i}
+          x={pad.l - 4}
+          y={y(t.v) + 3}
+          textAnchor="end"
+          fontSize={9}
+          fill={t.emphasis ? color : "var(--ink-tertiary)"}
+          fontFamily="Inter"
+          fontWeight={t.emphasis ? 600 : 400}
+          style={{ fontVariantNumeric: "tabular-nums" }}
+        >
+          {t.label}
+        </text>
+      ))}
+
+      {/* Línea principal */}
       <polyline
         points={points}
         fill="none"
@@ -95,6 +145,8 @@ function Sparkline({
         strokeLinejoin="round"
         strokeLinecap="round"
       />
+
+      {/* Dots con tooltip nativo */}
       {values.map((v, i) => (
         <circle
           key={i}
@@ -102,7 +154,24 @@ function Sparkline({
           cy={y(v)}
           r={i === values.length - 1 ? 3.5 : 2.5}
           fill={color}
-        />
+        >
+          <title>{`${fmtShortDate(chronological[i].date)} · ${v} ms`}</title>
+        </circle>
+      ))}
+
+      {/* Etiquetas eje X */}
+      {xIndices.map((i) => (
+        <text
+          key={`x-${i}`}
+          x={x(i)}
+          y={H - 5}
+          textAnchor={i === 0 ? "start" : i === values.length - 1 ? "end" : "middle"}
+          fontSize={9}
+          fill="var(--ink-tertiary)"
+          fontFamily="Inter"
+        >
+          {fmtShortDate(chronological[i].date)}
+        </text>
       ))}
     </svg>
   );
@@ -151,7 +220,9 @@ export function HRVCard({ hrv }: { hrv: HRV }) {
         <div>
           <div className="flex items-center gap-1.5">
             <span className="text-[11px]">🔵</span>
-            <span className="label-uppercase">VFC Nocturna</span>
+            <span className="label-uppercase">
+              <Term k="hrv">VFC Nocturna</Term>
+            </span>
           </div>
           <p className="text-[11px] text-ink-tertiary mt-1">
             Media últimos {hrv.days_recorded} días

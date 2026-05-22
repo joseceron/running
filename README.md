@@ -117,4 +117,6 @@ Detalles en [`runner-agent/infra/README.md`](runner-agent/infra/README.md).
 
 ---
 
+BACKEND: https://liebre-api-948756297403.us-east1.run.app
+
 © 2026 Liebre

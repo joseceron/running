@@ -1,0 +1,35 @@
+# Cloud Build config — build + push de la imagen liebre-api.
+# Para deploy use: gcloud run deploy (paso separado).
+
+steps:
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'build'
+    args:
+      - 'build'
+      - '-t'
+      - 'us-east1-docker.pkg.dev/$PROJECT_ID/liebre-images/liebre-api:$BUILD_ID'
+      - '-t'
+      - 'us-east1-docker.pkg.dev/$PROJECT_ID/liebre-images/liebre-api:latest'
+      - '.'
+
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'push-sha'
+    args:
+      - 'push'
+      - 'us-east1-docker.pkg.dev/$PROJECT_ID/liebre-images/liebre-api:$BUILD_ID'
+
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'push-latest'
+    args:
+      - 'push'
+      - 'us-east1-docker.pkg.dev/$PROJECT_ID/liebre-images/liebre-api:latest'
+
+images:
+  - 'us-east1-docker.pkg.dev/$PROJECT_ID/liebre-images/liebre-api:$BUILD_ID'
+  - 'us-east1-docker.pkg.dev/$PROJECT_ID/liebre-images/liebre-api:latest'
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+  machineType: 'E2_HIGHCPU_8'
+
+timeout: '900s'

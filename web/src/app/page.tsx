@@ -6,6 +6,7 @@ import {
   PAIN_POINTS,
   PLANS,
   REAL_DATA_CARDS,
+  fmtCOP,
 } from "@/lib/landing-data";
 
 export default function HomePage() {
@@ -56,15 +57,28 @@ export default function HomePage() {
           }}
         />
         <div className="max-w-5xl mx-auto px-4 md:px-8 py-16 md:py-28 text-center relative">
-          <p
-            className="inline-block text-[11px] uppercase tracking-[0.2em] font-semibold px-3 py-1 rounded-full mb-6"
-            style={{
-              background: "color-mix(in srgb, var(--accent-brand) 12%, transparent)",
-              color: "var(--accent-brand)",
-            }}
-          >
-            Inteligencia artificial para corredores
-          </p>
+          <div className="flex flex-wrap items-center justify-center gap-2 mb-6">
+            <span
+              className="inline-block text-[11px] uppercase tracking-[0.2em] font-semibold px-3 py-1 rounded-full"
+              style={{
+                background:
+                  "color-mix(in srgb, var(--accent-brand) 12%, transparent)",
+                color: "var(--accent-brand)",
+              }}
+            >
+              Inteligencia artificial para corredores
+            </span>
+            <span
+              className="inline-flex items-center gap-1.5 text-[11px] font-medium px-3 py-1 rounded-full"
+              style={{
+                background:
+                  "color-mix(in srgb, var(--semantic-positive) 10%, transparent)",
+                color: "var(--semantic-positive)",
+              }}
+            >
+              <span>⌚</span> Sincroniza con Garmin
+            </span>
+          </div>
           <h1 className="wordmark text-4xl md:text-6xl lg:text-7xl leading-[1.05] max-w-3xl mx-auto mb-5">
             Lo que Garmin <span className="text-ink-tertiary">ve</span>.
             <br />
@@ -393,23 +407,45 @@ export default function HomePage() {
                   >
                     Liebre {p.tier}
                   </p>
-                  <p
-                    className={`metric-display text-5xl leading-none ${
-                      isRecommended ? "text-white" : "text-ink-primary"
-                    }`}
-                  >
-                    ${p.price}
-                    <span
-                      className="text-base font-normal ml-1"
-                      style={
-                        isRecommended
-                          ? { color: "rgba(255,255,255,0.6)" }
-                          : { color: "var(--ink-tertiary)" }
-                      }
+                  <div>
+                    <p
+                      className="metric-display text-5xl leading-none"
+                      style={{
+                        color: isRecommended ? "#ffffff" : "var(--ink-primary)",
+                      }}
                     >
-                      USD/mes
-                    </span>
-                  </p>
+                      ${p.price}
+                      <span
+                        className="text-base font-normal ml-1"
+                        style={{
+                          color: isRecommended
+                            ? "rgba(255,255,255,0.6)"
+                            : "var(--ink-tertiary)",
+                        }}
+                      >
+                        USD/mes
+                      </span>
+                    </p>
+                    <p
+                      className="text-[13px] mt-2 tnum"
+                      style={{
+                        color: isRecommended
+                          ? "rgba(255,255,255,0.65)"
+                          : "var(--ink-secondary)",
+                      }}
+                    >
+                      {fmtCOP(p.price)}{" "}
+                      <span
+                        style={{
+                          color: isRecommended
+                            ? "rgba(255,255,255,0.4)"
+                            : "var(--ink-tertiary)",
+                        }}
+                      >
+                        COP/mes aprox · tasa referencial
+                      </span>
+                    </p>
+                  </div>
                   <ul
                     className="space-y-2 mt-6 mb-6 text-sm"
                     style={

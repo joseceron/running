@@ -41,6 +41,35 @@ export const GLOSSARY = {
     short: "Pulsaciones por minuto (latidos del corazón).",
     long: "ppm = pulsaciones por minuto. Mide la frecuencia cardíaca: cuántas veces late tu corazón en 60 segundos.",
   },
+  lpm: {
+    term: "lpm",
+    short: "Latidos por minuto. Equivalente a ppm.",
+    long: "lpm = latidos por minuto. Es lo mismo que ppm — mide la frecuencia cardíaca.",
+  },
+  fc_max: {
+    term: "FC máxima",
+    short:
+      "El límite más alto de tu frecuencia cardíaca. Define los rangos de cada zona de entrenamiento.",
+    long:
+      "FC máxima es la frecuencia cardíaca más alta que tu corazón puede alcanzar. Se estima como 220 - edad (José: ~184 lpm) pero el valor REAL se mide en un test de esfuerzo o se observa en sesiones a tope. Todas las zonas (Z1-Z5) se calculan como porcentaje de tu FC máx.",
+    example: "FC máx 190 lpm → Z2 (zona fácil) ≈ 60-70% = 114-133 lpm.",
+  },
+  fc_reposo: {
+    term: "FC en reposo",
+    short:
+      "Tu frecuencia cardíaca al despertar, antes de levantarte. Indicador de fitness cardiovascular.",
+    long:
+      "FC en reposo es la cantidad de latidos por minuto de tu corazón cuando estás completamente relajado (idealmente al despertar). Cuanto MÁS BAJA, mejor — refleja un corazón eficiente. Los corredores entrenados suelen tener 40-55 lpm; sedentarios 70-80 lpm. Bajar de 56 a 50 lpm en una semana (caso de José) es señal clara de adaptación aeróbica.",
+    example: "51 lpm = corazón bien entrenado.",
+  },
+  vfc: {
+    term: "VFC",
+    short:
+      "Variabilidad de la Frecuencia Cardíaca — variaciones entre cada latido. Sinónimo de HRV.",
+    long:
+      "VFC (Variabilidad de la Frecuencia Cardíaca) es la traducción al español de HRV (Heart Rate Variability). Mide las microvariaciones entre latido y latido. VFC alta = sistema nervioso recuperado; VFC baja = fatiga acumulada o estrés. Tu baseline personal es más útil que comparar contra valores poblacionales.",
+    example: "52 ms = la media de variación entre latidos nocturnos.",
+  },
   ritmo: {
     term: "Ritmo",
     short:

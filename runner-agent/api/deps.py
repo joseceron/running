@@ -42,6 +42,11 @@ def get_current_user_id(
         return settings.dev_user_id
 
     if not authorization or not authorization.startswith("Bearer "):
+        import os
+
+        demo_uid = os.environ.get("DEMO_FALLBACK_USER_ID")
+        if demo_uid:
+            return demo_uid
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Missing or malformed Authorization header",

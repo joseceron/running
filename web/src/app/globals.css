@@ -205,13 +205,15 @@ body {
 }
 
 /* Display de métricas grandes (gauges, KPIs principales) */
+/* Display de métricas grandes — sin color por defecto para que se herede
+   correctamente sobre fondos oscuros (cards dark con texto blanco). */
 .metric-display {
   font-family: var(--font-display), ui-serif, serif;
   font-feature-settings: "tnum";
   font-weight: 300;
   letter-spacing: -0.04em;
   line-height: 1;
-  color: var(--ink-primary);
+  color: inherit;
 }
 
 /* KPI mediano (cards "De un vistazo") */

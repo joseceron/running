@@ -1,10 +1,11 @@
 /**
- * ProfileCard — alineado con mockup.
- * Avatar circular con iniciales + nombre + sub-label, luego stats en
- * filas flex space-between (sin border entre filas, espaciado por gap).
+ * ProfileCard — perfil del corredor con avatar circular + sub-label + stats.
+ * FC máx, FC reposo y lpm tienen tooltip de glosario.
  */
 
 import type { Profile } from "@/lib/api";
+import { Term } from "./Term";
+import type { GlossaryKey } from "@/lib/glossary";
 
 function initials(name: string): string {
   const parts = name.trim().split(/\s+/);
@@ -12,16 +13,30 @@ function initials(name: string): string {
   return (parts[0][0] + parts[1][0]).toUpperCase();
 }
 
+type StatRow = {
+  label: React.ReactNode;
+  value: string;
+  unit?: GlossaryKey;
+};
+
 export function ProfileCard({ profile }: { profile: Profile }) {
-  const stats: Array<[string, string]> = [
-    ["Edad", profile.age ? `${profile.age} años` : "—"],
-    ["Peso", profile.weight_kg ? `${profile.weight_kg} kg` : "—"],
-    ["Altura", profile.height_cm ? `${profile.height_cm} cm` : "—"],
-    ["FC máx", profile.max_hr ? `${profile.max_hr} lpm` : "—"],
-    ["FC reposo", profile.resting_hr ? `${profile.resting_hr} lpm` : "—"],
+  const stats: StatRow[] = [
+    { label: "Edad", value: profile.age ? `${profile.age} años` : "—" },
+    { label: "Peso", value: profile.weight_kg ? `${profile.weight_kg} kg` : "—" },
+    { label: "Altura", value: profile.height_cm ? `${profile.height_cm} cm` : "—" },
+    {
+      label: <Term k="fc_max">FC máx</Term>,
+      value: profile.max_hr ? `${profile.max_hr}` : "—",
+      unit: profile.max_hr ? "lpm" : undefined,
+    },
+    {
+      label: <Term k="fc_reposo">FC reposo</Term>,
+      value: profile.resting_hr ? `${profile.resting_hr}` : "—",
+      unit: profile.resting_hr ? "lpm" : undefined,
+    },
   ];
   return (
-    <div className="card">
+    <div className="card overflow-visible">
       <span className="label-uppercase">Tu Perfil</span>
 
       <div className="flex items-center gap-3 mt-3.5 mb-4">
@@ -39,14 +54,16 @@ export function ProfileCard({ profile }: { profile: Profile }) {
       </div>
 
       <dl className="flex flex-col gap-2.5">
-        {stats.map(([label, value]) => (
-          <div
-            key={label}
-            className="flex items-baseline justify-between"
-          >
-            <dt className="text-[13px] text-ink-tertiary">{label}</dt>
+        {stats.map((s, i) => (
+          <div key={i} className="flex items-baseline justify-between">
+            <dt className="text-[13px] text-ink-tertiary">{s.label}</dt>
             <dd className="tnum text-[13px] font-semibold text-ink-primary">
-              {value}
+              {s.value}
+              {s.unit && (
+                <span className="ml-1 font-normal text-ink-tertiary">
+                  <Term k={s.unit}>{s.unit}</Term>
+                </span>
+              )}
             </dd>
           </div>
         ))}
