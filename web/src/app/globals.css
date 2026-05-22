@@ -356,3 +356,152 @@ body {
   .bg-white\/10   { background-color: rgba(255, 255, 255, 0.10); }
   .border-white\/8 { border-color: rgba(255, 255, 255, 0.08); }
 }
+
+/* ════════════════════════════════════════════════════════════════
+   LANDING — animations + premium effects
+   Solo se usan en el landing (/) — no afectan dashboard.
+   ════════════════════════════════════════════════════════════════ */
+
+/* Orbs flotantes en hero (gradient blobs con blur) */
+@keyframes liebre-orb-float {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33%      { transform: translate(40px, -30px) scale(1.06); }
+  66%      { transform: translate(-30px, 40px) scale(0.95); }
+}
+.liebre-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  pointer-events: none;
+  animation: liebre-orb-float 20s ease-in-out infinite;
+  will-change: transform;
+}
+
+/* Grid pattern animado */
+@keyframes liebre-grid-pan {
+  from { background-position: 0 0; }
+  to   { background-position: 60px 60px; }
+}
+.liebre-grid-bg {
+  background-image:
+    linear-gradient(rgba(47, 129, 247, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(47, 129, 247, 0.06) 1px, transparent 1px);
+  background-size: 60px 60px;
+  animation: liebre-grid-pan 30s linear infinite;
+}
+
+/* Sparkles (particulas) — dots aleatorios pulsantes */
+@keyframes liebre-sparkle {
+  0%, 100% { opacity: 0; transform: scale(0.6); }
+  50%      { opacity: 0.9; transform: scale(1); }
+}
+.liebre-sparkle {
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: #79c0ff;
+  animation: liebre-sparkle 4s ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* Reveal up (fade + slide al aparecer) */
+@keyframes liebre-reveal-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.liebre-reveal {
+  animation: liebre-reveal-up 0.8s ease-out both;
+}
+
+/* Shimmer button — luz pasa por el botón al hover */
+.liebre-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+.liebre-shimmer::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.35) 50%,
+    transparent 70%
+  );
+  transform: translateX(-100%);
+  transition: transform 0.7s ease;
+  pointer-events: none;
+}
+.liebre-shimmer:hover::before {
+  transform: translateX(100%);
+}
+
+/* Module card hover — lift + glow del color del modulo via --module-accent */
+.liebre-module-card {
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+.liebre-module-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--module-accent, #2f81f7) !important;
+  box-shadow:
+    0 14px 40px rgba(0, 0, 0, 0.4),
+    0 0 0 1px var(--module-accent, #2f81f7),
+    0 0 40px color-mix(in srgb, var(--module-accent, #2f81f7) 25%, transparent);
+}
+.liebre-module-card:hover .liebre-module-icon {
+  transform: scale(1.08) rotate(-4deg);
+}
+.liebre-module-icon {
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Pricing card "Recomendado" — gradient border animado */
+@keyframes liebre-gradient-border {
+  0%, 100% { background-position: 0% 50%; }
+  50%      { background-position: 100% 50%; }
+}
+.liebre-pricing-featured {
+  position: relative;
+}
+.liebre-pricing-featured::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: 15px;
+  padding: 1px;
+  background: linear-gradient(
+    135deg,
+    #2f81f7 0%,
+    #a5a0ff 25%,
+    #3fb950 50%,
+    #79c0ff 75%,
+    #2f81f7 100%
+  );
+  background-size: 300% 300%;
+  animation: liebre-gradient-border 8s ease infinite;
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* Lift sutil para CTAs y cards */
+.liebre-lift {
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+.liebre-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px rgba(47, 129, 247, 0.3);
+}
+
+/* Stat number — gradient text con animación pulse */
+.liebre-stat-num {
+  background: linear-gradient(135deg, #e6edf3 0%, #2f81f7 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+

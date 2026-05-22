@@ -84,16 +84,78 @@ export default function HomePage() {
           background: `radial-gradient(ellipse 80% 60% at 50% 0%, #0d2044 0%, ${C.bg} 70%)`,
         }}
       >
-        {/* dot pattern overlay */}
+        {/* Grid pattern animado */}
         <div
+          className="liebre-grid-bg"
           style={{
             position: "absolute",
             inset: 0,
-            backgroundImage: `radial-gradient(circle, rgba(47,129,247,0.06) 1px, transparent 1px)`,
-            backgroundSize: "32px 32px",
+            opacity: 0.45,
             pointerEvents: "none",
           }}
         />
+
+        {/* Orbs flotantes (gradient blobs con blur) */}
+        <div
+          className="liebre-orb"
+          style={{
+            width: 480,
+            height: 480,
+            top: "-180px",
+            left: "10%",
+            background: "radial-gradient(circle, #2f81f7 0%, transparent 65%)",
+            opacity: 0.35,
+            animationDelay: "0s",
+          }}
+        />
+        <div
+          className="liebre-orb"
+          style={{
+            width: 380,
+            height: 380,
+            top: "60px",
+            right: "8%",
+            background: "radial-gradient(circle, #a5a0ff 0%, transparent 65%)",
+            opacity: 0.28,
+            animationDelay: "-7s",
+          }}
+        />
+        <div
+          className="liebre-orb"
+          style={{
+            width: 320,
+            height: 320,
+            bottom: "-120px",
+            left: "30%",
+            background: "radial-gradient(circle, #3fb950 0%, transparent 65%)",
+            opacity: 0.22,
+            animationDelay: "-13s",
+          }}
+        />
+
+        {/* Sparkles aleatorios */}
+        {[
+          { top: "12%", left: "18%", delay: "0s" },
+          { top: "22%", left: "82%", delay: "1.2s" },
+          { top: "55%", left: "12%", delay: "2.4s" },
+          { top: "68%", left: "88%", delay: "0.8s" },
+          { top: "38%", left: "92%", delay: "3.1s" },
+          { top: "82%", left: "25%", delay: "1.8s" },
+          { top: "16%", left: "55%", delay: "2.6s" },
+          { top: "78%", left: "65%", delay: "0.4s" },
+        ].map((s, i) => (
+          <span
+            key={i}
+            className="liebre-sparkle"
+            style={{
+              top: s.top,
+              left: s.left,
+              animationDelay: s.delay,
+              boxShadow: "0 0 8px rgba(121, 192, 255, 0.8)",
+            }}
+          />
+        ))}
+
         <div className="max-w-5xl mx-auto px-4 md:px-8 py-20 md:py-32 text-center relative">
           <div className="flex flex-wrap items-center justify-center gap-2 mb-6">
             <span
@@ -166,6 +228,7 @@ export default function HomePage() {
           <div className="flex flex-wrap gap-3 justify-center mb-16">
             <Link
               href="/dashboard"
+              className="liebre-shimmer liebre-lift"
               style={{
                 background: C.accent,
                 color: "#fff",
@@ -174,14 +237,18 @@ export default function HomePage() {
                 padding: "13px 28px",
                 borderRadius: 8,
                 textDecoration: "none",
+                display: "inline-block",
+                boxShadow: "0 4px 14px rgba(47,129,247,0.4)",
               }}
             >
               Ver demo del dashboard →
             </Link>
             <a
               href="#comparativa"
+              className="liebre-lift"
               style={{
-                background: "transparent",
+                background: "rgba(13,17,23,0.6)",
+                backdropFilter: "blur(8px)",
                 color: C.text,
                 fontWeight: 600,
                 fontSize: 14,
@@ -189,21 +256,26 @@ export default function HomePage() {
                 borderRadius: 8,
                 border: `1px solid ${C.border}`,
                 textDecoration: "none",
+                display: "inline-block",
               }}
             >
               Comparar con Connect
             </a>
           </div>
 
-          {/* Stats */}
+          {/* Stats con reveal animado */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-10 max-w-3xl mx-auto">
-            {HERO_STATS.map((s) => (
-              <div key={s.label} className="text-center">
+            {HERO_STATS.map((s, i) => (
+              <div
+                key={s.label}
+                className="text-center liebre-reveal"
+                style={{ animationDelay: `${0.1 + i * 0.12}s` }}
+              >
                 <p
+                  className="liebre-stat-num"
                   style={{
-                    fontSize: 38,
+                    fontSize: 42,
                     fontWeight: 800,
-                    color: C.accent,
                     fontVariantNumeric: "tabular-nums",
                     letterSpacing: "-0.02em",
                   }}
@@ -214,7 +286,7 @@ export default function HomePage() {
                   style={{
                     fontSize: 12,
                     color: C.textMuted,
-                    marginTop: 4,
+                    marginTop: 6,
                     lineHeight: 1.4,
                   }}
                 >
@@ -563,6 +635,7 @@ export default function HomePage() {
               return (
                 <article
                   key={m.n}
+                  className="liebre-module-card"
                   style={{
                     background: C.surface2,
                     border: `1px solid ${C.border}`,
@@ -573,6 +646,7 @@ export default function HomePage() {
                     flexDirection: "column",
                     position: "relative",
                     overflow: "hidden",
+                    ["--module-accent" as never]: accent,
                   }}
                 >
                   {/* Glow decorativo */}
@@ -592,6 +666,7 @@ export default function HomePage() {
                   {/* Header: icon + module number */}
                   <div className="flex items-center gap-3 mb-3 relative">
                     <span
+                      className="liebre-module-icon"
                       style={{
                         width: 38,
                         height: 38,
@@ -900,16 +975,17 @@ export default function HomePage() {
               return (
                 <article
                   key={p.tier}
+                  className={isRec ? "liebre-pricing-featured liebre-lift" : "liebre-lift"}
                   style={{
                     background: isRec ? C.surface2 : C.surface,
                     border: isRec
-                      ? `1px solid ${C.accent}`
+                      ? "1px solid transparent"
                       : `1px solid ${C.border}`,
                     borderRadius: 14,
                     padding: 28,
                     position: "relative",
                     boxShadow: isRec
-                      ? `0 0 40px rgba(47,129,247,0.15)`
+                      ? `0 0 60px rgba(47,129,247,0.18)`
                       : "none",
                   }}
                 >
@@ -1011,6 +1087,7 @@ export default function HomePage() {
 
                   <Link
                     href="/dashboard"
+                    className={isRec ? "liebre-shimmer" : ""}
                     style={{
                       display: "block",
                       textAlign: "center",
@@ -1022,6 +1099,9 @@ export default function HomePage() {
                       background: isRec ? C.accent : "transparent",
                       color: isRec ? "#fff" : C.text,
                       border: isRec ? "none" : `1px solid ${C.border}`,
+                      boxShadow: isRec
+                        ? "0 6px 20px rgba(47,129,247,0.4)"
+                        : "none",
                     }}
                   >
                     Probar gratis
@@ -1083,6 +1163,7 @@ export default function HomePage() {
           </p>
           <Link
             href="/dashboard"
+            className="liebre-shimmer liebre-lift"
             style={{
               display: "inline-block",
               background: C.accent,
@@ -1092,6 +1173,7 @@ export default function HomePage() {
               padding: "14px 32px",
               borderRadius: 8,
               textDecoration: "none",
+              boxShadow: "0 8px 30px rgba(47,129,247,0.4)",
             }}
           >
             Entrar al dashboard →
