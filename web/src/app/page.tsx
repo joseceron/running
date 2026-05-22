@@ -7,39 +7,68 @@ import {
   PLANS,
   REAL_DATA_CARDS,
   fmtCOP,
+  moduleAccent,
 } from "@/lib/landing-data";
+
+/* ════════════════════════════════════════════════════════════════
+   PALETA — tema oscuro tipo GitHub, basado en propuesta_producto.html
+   ════════════════════════════════════════════════════════════════ */
+const C = {
+  bg: "#080c10",
+  surface: "#0d1117",
+  surface2: "#161b22",
+  surface3: "#21262d",
+  border: "#30363d",
+  borderSoft: "#21262d",
+  text: "#e6edf3",
+  textMuted: "#8b949e",
+  textDim: "#484f58",
+  accent: "#2f81f7",
+  accentSoft: "rgba(31,111,235,0.16)",
+  green: "#3fb950",
+  yellow: "#e3b341",
+  red: "#ff7b72",
+};
 
 export default function HomePage() {
   return (
-    <main className="min-h-screen bg-bg-page text-ink-primary">
+    <main
+      style={{
+        background: C.bg,
+        color: C.text,
+        minHeight: "100vh",
+        fontFamily:
+          "-apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, Roboto, sans-serif",
+      }}
+    >
       {/* ─────────────── NAV ─────────────── */}
-      <nav className="sticky top-0 z-30 bg-bg-page/95 backdrop-blur border-b border-rule/60">
-        <div className="max-w-6xl mx-auto px-4 md:px-8 py-3 flex items-center justify-between">
-          <Link href="/" className="wordmark text-2xl md:text-3xl">
-            liebre<span className="dot">.</span>
+      <nav
+        style={{
+          position: "sticky",
+          top: 0,
+          zIndex: 30,
+          background: "rgba(8,12,16,0.85)",
+          backdropFilter: "blur(12px)",
+          borderBottom: `1px solid ${C.border}`,
+        }}
+      >
+        <div className="max-w-6xl mx-auto px-4 md:px-8 py-3.5 flex items-center justify-between">
+          <Link
+            href="/"
+            className="wordmark text-2xl md:text-3xl"
+            style={{ color: C.text }}
+          >
+            liebre
+            <span style={{ color: C.accent }}>.</span>
           </Link>
-          <div className="flex items-center gap-2 md:gap-3">
-            <a
-              href="#modulos"
-              className="hidden sm:inline text-sm text-ink-secondary hover:text-ink-primary px-3 py-1.5"
-            >
-              Módulos
-            </a>
-            <a
-              href="#comparativa"
-              className="hidden sm:inline text-sm text-ink-secondary hover:text-ink-primary px-3 py-1.5"
-            >
-              vs Connect
-            </a>
-            <a
-              href="#planes"
-              className="hidden sm:inline text-sm text-ink-secondary hover:text-ink-primary px-3 py-1.5"
-            >
-              Planes
-            </a>
+          <div className="flex items-center gap-1 md:gap-2">
+            <NavLink href="#modulos">Módulos</NavLink>
+            <NavLink href="#comparativa">vs Connect</NavLink>
+            <NavLink href="#planes">Planes</NavLink>
             <Link
               href="/dashboard"
-              className="text-sm font-semibold px-4 py-2 rounded-md bg-accent-brand text-white hover:opacity-90 transition"
+              className="text-sm font-semibold ml-2 px-4 py-2 rounded-md transition-opacity hover:opacity-90"
+              style={{ background: C.accent, color: "#fff" }}
             >
               Entrar
             </Link>
@@ -48,58 +77,119 @@ export default function HomePage() {
       </nav>
 
       {/* ─────────────── HERO ─────────────── */}
-      <section className="relative overflow-hidden">
+      <section
+        style={{
+          position: "relative",
+          overflow: "hidden",
+          background: `radial-gradient(ellipse 80% 60% at 50% 0%, #0d2044 0%, ${C.bg} 70%)`,
+        }}
+      >
+        {/* dot pattern overlay */}
         <div
-          className="absolute inset-0 pointer-events-none"
           style={{
-            background:
-              "radial-gradient(ellipse 80% 60% at 50% 0%, rgba(25,118,210,0.10) 0%, transparent 70%)",
+            position: "absolute",
+            inset: 0,
+            backgroundImage: `radial-gradient(circle, rgba(47,129,247,0.06) 1px, transparent 1px)`,
+            backgroundSize: "32px 32px",
+            pointerEvents: "none",
           }}
         />
-        <div className="max-w-5xl mx-auto px-4 md:px-8 py-16 md:py-28 text-center relative">
+        <div className="max-w-5xl mx-auto px-4 md:px-8 py-20 md:py-32 text-center relative">
           <div className="flex flex-wrap items-center justify-center gap-2 mb-6">
             <span
-              className="inline-block text-[11px] uppercase tracking-[0.2em] font-semibold px-3 py-1 rounded-full"
               style={{
-                background:
-                  "color-mix(in srgb, var(--accent-brand) 12%, transparent)",
-                color: "var(--accent-brand)",
+                display: "inline-block",
+                fontSize: 11,
+                textTransform: "uppercase",
+                letterSpacing: "0.2em",
+                color: C.accent,
+                background: C.accentSoft,
+                border: `1px solid rgba(47,129,247,0.27)`,
+                padding: "5px 14px",
+                borderRadius: 20,
+                fontWeight: 600,
               }}
             >
               Inteligencia artificial para corredores
             </span>
             <span
-              className="inline-flex items-center gap-1.5 text-[11px] font-medium px-3 py-1 rounded-full"
               style={{
-                background:
-                  "color-mix(in srgb, var(--semantic-positive) 10%, transparent)",
-                color: "var(--semantic-positive)",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 6,
+                fontSize: 11,
+                fontWeight: 600,
+                color: C.green,
+                background: "rgba(63,185,80,0.12)",
+                border: "1px solid rgba(63,185,80,0.32)",
+                padding: "5px 12px",
+                borderRadius: 20,
               }}
             >
-              <span>⌚</span> Sincroniza con Garmin
+              ⌚ Sincroniza con Garmin
             </span>
           </div>
-          <h1 className="wordmark text-4xl md:text-6xl lg:text-7xl leading-[1.05] max-w-3xl mx-auto mb-5">
-            Lo que Garmin <span className="text-ink-tertiary">ve</span>.
+
+          <h1
+            style={{
+              fontSize: "clamp(40px, 6.5vw, 72px)",
+              fontWeight: 800,
+              lineHeight: 1.06,
+              letterSpacing: "-0.02em",
+              maxWidth: 880,
+              margin: "0 auto 24px",
+              background: `linear-gradient(135deg, ${C.text} 30%, ${C.accent} 100%)`,
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              backgroundClip: "text",
+            }}
+          >
+            Lo que Garmin ve.
             <br />
-            Lo que un entrenador{" "}
-            <span className="text-accent-brand italic">entiende</span>.
+            Lo que un entrenador entiende.
           </h1>
-          <p className="text-base md:text-lg text-ink-secondary max-w-2xl mx-auto leading-relaxed mb-8 md:mb-10">
+
+          <p
+            style={{
+              fontSize: 18,
+              color: C.textMuted,
+              maxWidth: 620,
+              margin: "0 auto 40px",
+              lineHeight: 1.65,
+            }}
+          >
             Garmin registra tus datos. Liebre los interpreta con evidencia
             científica, construye tu perfil fisiológico personal y detecta lo
             que el app nunca te va a decir.
           </p>
-          <div className="flex flex-wrap gap-3 justify-center mb-12 md:mb-16">
+
+          <div className="flex flex-wrap gap-3 justify-center mb-16">
             <Link
               href="/dashboard"
-              className="px-6 py-3 rounded-md bg-accent-brand text-white font-semibold text-sm hover:opacity-90 transition"
+              style={{
+                background: C.accent,
+                color: "#fff",
+                fontWeight: 700,
+                fontSize: 14,
+                padding: "13px 28px",
+                borderRadius: 8,
+                textDecoration: "none",
+              }}
             >
-              Ver demo del dashboard
+              Ver demo del dashboard →
             </Link>
             <a
               href="#comparativa"
-              className="px-6 py-3 rounded-md border border-rule text-sm font-semibold hover:border-ink-primary transition"
+              style={{
+                background: "transparent",
+                color: C.text,
+                fontWeight: 600,
+                fontSize: 14,
+                padding: "13px 28px",
+                borderRadius: 8,
+                border: `1px solid ${C.border}`,
+                textDecoration: "none",
+              }}
             >
               Comparar con Connect
             </a>
@@ -109,10 +199,25 @@ export default function HomePage() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-10 max-w-3xl mx-auto">
             {HERO_STATS.map((s) => (
               <div key={s.label} className="text-center">
-                <p className="metric-display text-3xl md:text-4xl text-ink-primary mb-1">
+                <p
+                  style={{
+                    fontSize: 38,
+                    fontWeight: 800,
+                    color: C.accent,
+                    fontVariantNumeric: "tabular-nums",
+                    letterSpacing: "-0.02em",
+                  }}
+                >
                   {s.value}
                 </p>
-                <p className="text-[11px] text-ink-tertiary leading-snug">
+                <p
+                  style={{
+                    fontSize: 12,
+                    color: C.textMuted,
+                    marginTop: 4,
+                    lineHeight: 1.4,
+                  }}
+                >
                   {s.label}
                 </p>
               </div>
@@ -122,37 +227,96 @@ export default function HomePage() {
       </section>
 
       {/* ─────────────── EL PROBLEMA ─────────────── */}
-      <section className="border-t border-rule/60 bg-bg-content">
-        <div className="max-w-6xl mx-auto px-4 md:px-8 py-16 md:py-24">
-          <div className="text-center mb-10 md:mb-14">
-            <p className="label-uppercase mb-3">El problema</p>
-            <h2 className="text-2xl md:text-4xl wordmark text-ink-primary leading-tight max-w-2xl mx-auto">
-              Garmin te dice <span className="text-ink-tertiary">qué</span>{" "}
+      <section
+        style={{
+          background: C.surface,
+          borderTop: `1px solid ${C.border}`,
+          borderBottom: `1px solid ${C.border}`,
+          padding: "80px 0",
+        }}
+      >
+        <div className="max-w-6xl mx-auto px-4 md:px-8">
+          <div className="text-center mb-12">
+            <p
+              style={{
+                fontSize: 11,
+                textTransform: "uppercase",
+                letterSpacing: "0.2em",
+                color: C.accent,
+                marginBottom: 12,
+                fontWeight: 600,
+              }}
+            >
+              El problema
+            </p>
+            <h2
+              style={{
+                fontSize: "clamp(26px, 4vw, 42px)",
+                fontWeight: 800,
+                lineHeight: 1.15,
+                maxWidth: 720,
+                margin: "0 auto",
+                color: C.text,
+              }}
+            >
+              Garmin te dice <span style={{ color: C.textMuted }}>qué</span>{" "}
               entrenar.
               <br />
-              Nadie te dice{" "}
-              <span className="text-accent-brand italic">por qué</span> estás en
-              riesgo.
+              Nadie te dice <span style={{ color: C.red }}>por qué</span> estás
+              en riesgo.
             </h2>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-4 md:gap-5 max-w-5xl mx-auto">
+          <div className="grid md:grid-cols-2 gap-5 max-w-5xl mx-auto">
             {PAIN_POINTS.map((p) => (
-              <article
+              <div
                 key={p.title}
-                className="card flex gap-4"
-                style={{ padding: "20px 22px" }}
+                style={{
+                  background: C.surface2,
+                  border: `1px solid ${C.border}`,
+                  borderRadius: 14,
+                  padding: "22px 24px",
+                  display: "flex",
+                  gap: 16,
+                }}
               >
-                <div className="text-2xl shrink-0">{p.icon}</div>
+                <div
+                  style={{
+                    fontSize: 24,
+                    flexShrink: 0,
+                    width: 40,
+                    height: 40,
+                    borderRadius: 8,
+                    background: C.surface3,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  {p.icon}
+                </div>
                 <div>
-                  <h3 className="text-sm font-semibold text-ink-primary mb-1.5">
+                  <h3
+                    style={{
+                      fontSize: 14,
+                      fontWeight: 700,
+                      color: C.text,
+                      marginBottom: 6,
+                    }}
+                  >
                     {p.title}
                   </h3>
-                  <p className="text-[13px] text-ink-secondary leading-relaxed">
+                  <p
+                    style={{
+                      fontSize: 13,
+                      color: C.textMuted,
+                      lineHeight: 1.6,
+                    }}
+                  >
                     {p.body}
                   </p>
                 </div>
-              </article>
+              </div>
             ))}
           </div>
         </div>
@@ -161,74 +325,178 @@ export default function HomePage() {
       {/* ─────────────── COMPARATIVA ─────────────── */}
       <section
         id="comparativa"
-        className="border-t border-rule/60"
-        style={{ background: "var(--bg-card-subtle)" }}
+        style={{ background: C.bg, padding: "80px 0" }}
       >
-        <div className="max-w-5xl mx-auto px-4 md:px-8 py-16 md:py-24">
-          <div className="text-center mb-10 md:mb-14">
-            <p className="label-uppercase mb-3">Comparativa</p>
-            <h2 className="text-2xl md:text-4xl wordmark text-ink-primary leading-tight">
+        <div className="max-w-5xl mx-auto px-4 md:px-8">
+          <div className="text-center mb-12">
+            <p
+              style={{
+                fontSize: 11,
+                textTransform: "uppercase",
+                letterSpacing: "0.2em",
+                color: C.accent,
+                marginBottom: 12,
+                fontWeight: 600,
+              }}
+            >
+              Comparativa
+            </p>
+            <h2
+              style={{
+                fontSize: "clamp(26px, 4vw, 42px)",
+                fontWeight: 800,
+                lineHeight: 1.15,
+                color: C.text,
+              }}
+            >
               Liebre vs Garmin Connect+
             </h2>
-            <p className="text-sm text-ink-secondary mt-3 max-w-xl mx-auto">
-              Garmin Connect+ cuesta $8.99 USD/mes. Esta es la diferencia en lo
-              que realmente importa para rendimiento y prevención.
+            <p
+              style={{
+                fontSize: 15,
+                color: C.textMuted,
+                marginTop: 12,
+                maxWidth: 580,
+                margin: "12px auto 0",
+                lineHeight: 1.6,
+              }}
+            >
+              Garmin Connect+ cuesta $8.99/mes. Esta es la diferencia en lo que
+              realmente importa para rendimiento y prevención.
             </p>
           </div>
 
-          <div className="card p-0 overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+          <div
+            style={{
+              border: `1px solid ${C.border}`,
+              borderRadius: 12,
+              overflow: "hidden",
+            }}
+          >
+            <div style={{ overflowX: "auto" }}>
+              <table
+                style={{
+                  width: "100%",
+                  borderCollapse: "separate",
+                  borderSpacing: 0,
+                  fontSize: 13,
+                }}
+              >
                 <thead>
-                  <tr
-                    className="border-b border-rule/60"
-                    style={{ background: "var(--bg-card-subtle)" }}
-                  >
-                    <th className="text-left px-4 py-3 label-uppercase font-medium">
+                  <tr>
+                    <th
+                      style={{
+                        textAlign: "left",
+                        padding: "16px 20px",
+                        background: C.surface2,
+                        color: C.text,
+                        fontWeight: 700,
+                        fontSize: 12,
+                        textTransform: "uppercase",
+                        letterSpacing: "0.05em",
+                      }}
+                    >
                       Capacidad
                     </th>
-                    <th className="text-left px-4 py-3 label-uppercase font-medium">
-                      Connect+ · $8.99/mes
+                    <th
+                      style={{
+                        background: "#1a1a2e",
+                        color: "#79c0ff",
+                        padding: "16px 20px",
+                        textAlign: "center",
+                        fontWeight: 700,
+                        fontSize: 12,
+                        textTransform: "uppercase",
+                        letterSpacing: "0.05em",
+                        borderLeft: `1px solid ${C.border}`,
+                      }}
+                    >
+                      Connect+ · $8.99
                     </th>
-                    <th className="text-left px-4 py-3 label-uppercase font-medium text-accent-brand">
+                    <th
+                      style={{
+                        background: "#0d2a14",
+                        color: C.green,
+                        padding: "16px 20px",
+                        textAlign: "center",
+                        fontWeight: 700,
+                        fontSize: 12,
+                        textTransform: "uppercase",
+                        letterSpacing: "0.05em",
+                        borderLeft: `1px solid ${C.border}`,
+                      }}
+                    >
                       Liebre
                     </th>
                   </tr>
                 </thead>
                 <tbody>
-                  {COMPARISON.map((row, i) => (
-                    <tr
-                      key={row.capability}
-                      className="border-b border-rule/30 last:border-0"
-                      style={{
-                        background:
-                          i % 2 === 0 ? "transparent" : "var(--bg-card-subtle)",
-                      }}
-                    >
-                      <td className="px-4 py-3 font-medium text-ink-primary">
-                        {row.capability}
-                      </td>
-                      <td className="px-4 py-3 text-ink-tertiary">
-                        <span className="inline-flex items-center gap-1">
-                          {row.connect.includes("No") ||
-                          row.connect.includes("disp") ||
-                          row.connect === "Sin citas" ||
-                          row.connect === "No existe" ? (
-                            <span className="text-danger">✗</span>
-                          ) : (
-                            <span className="text-warning">~</span>
-                          )}
-                          {row.connect}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-ink-primary font-medium">
-                        <span className="inline-flex items-center gap-1">
-                          <span className="text-positive">✓</span>
-                          {row.liebre}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
+                  {COMPARISON.map((row) => {
+                    const connectNo =
+                      row.connect.includes("No") ||
+                      row.connect === "Sin citas" ||
+                      row.connect === "No existe";
+                    return (
+                      <tr key={row.capability}>
+                        <td
+                          style={{
+                            padding: "13px 20px",
+                            background: C.surface,
+                            color: C.textMuted,
+                            borderTop: `1px solid ${C.borderSoft}`,
+                          }}
+                        >
+                          {row.capability}
+                        </td>
+                        <td
+                          style={{
+                            padding: "13px 20px",
+                            background: "#0d0d1a",
+                            textAlign: "center",
+                            borderTop: `1px solid ${C.borderSoft}`,
+                            borderLeft: `1px solid ${C.borderSoft}`,
+                          }}
+                        >
+                          <span
+                            style={{
+                              color: connectNo ? C.red : C.yellow,
+                              fontSize: 16,
+                              marginRight: 6,
+                            }}
+                          >
+                            {connectNo ? "✗" : "~"}
+                          </span>
+                          <span
+                            style={{ color: C.textMuted, fontSize: 12 }}
+                          >
+                            {row.connect}
+                          </span>
+                        </td>
+                        <td
+                          style={{
+                            padding: "13px 20px",
+                            background: "#0a1f0a",
+                            textAlign: "center",
+                            borderTop: `1px solid ${C.borderSoft}`,
+                            borderLeft: `1px solid ${C.borderSoft}`,
+                          }}
+                        >
+                          <span
+                            style={{
+                              color: C.green,
+                              fontSize: 16,
+                              marginRight: 6,
+                            }}
+                          >
+                            ✓
+                          </span>
+                          <span style={{ color: C.text, fontSize: 12 }}>
+                            {row.liebre}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -237,121 +505,338 @@ export default function HomePage() {
       </section>
 
       {/* ─────────────── 8 MÓDULOS ─────────────── */}
-      <section id="modulos" className="border-t border-rule/60 bg-bg-content">
-        <div className="max-w-6xl mx-auto px-4 md:px-8 py-16 md:py-24">
-          <div className="text-center mb-10 md:mb-14">
-            <p className="label-uppercase mb-3">Módulos especializados</p>
-            <h2 className="text-2xl md:text-4xl wordmark text-ink-primary leading-tight max-w-2xl mx-auto">
+      <section
+        id="modulos"
+        style={{
+          background: C.surface,
+          borderTop: `1px solid ${C.border}`,
+          borderBottom: `1px solid ${C.border}`,
+          padding: "80px 0",
+        }}
+      >
+        <div className="max-w-6xl mx-auto px-4 md:px-8">
+          <div className="text-center mb-12">
+            <p
+              style={{
+                fontSize: 11,
+                textTransform: "uppercase",
+                letterSpacing: "0.2em",
+                color: C.accent,
+                marginBottom: 12,
+                fontWeight: 600,
+              }}
+            >
+              Módulos especializados
+            </p>
+            <h2
+              style={{
+                fontSize: "clamp(26px, 4vw, 42px)",
+                fontWeight: 800,
+                lineHeight: 1.15,
+                color: C.text,
+                maxWidth: 720,
+                margin: "0 auto",
+              }}
+            >
               8 reportes que{" "}
-              <span className="text-accent-brand italic">Connect no tiene</span>
+              <span style={{ color: C.accent }}>Connect no tiene</span>
             </h2>
-            <p className="text-sm text-ink-secondary mt-3 max-w-2xl mx-auto leading-relaxed">
+            <p
+              style={{
+                fontSize: 15,
+                color: C.textMuted,
+                marginTop: 14,
+                maxWidth: 640,
+                margin: "14px auto 0",
+                lineHeight: 1.6,
+              }}
+            >
               Cada módulo cruza tus datos reales de Garmin con literatura
               científica actualizada (Scopus + Web of Science) para generar
               recomendaciones con nombre y apellido.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-4 md:gap-5">
-            {MODULES.map((m) => (
-              <article key={m.n} className="card flex flex-col">
-                <div className="flex items-baseline gap-3 mb-3">
-                  <span
-                    className="text-xs font-bold px-2 py-1 rounded shrink-0"
-                    style={{
-                      background:
-                        "color-mix(in srgb, var(--accent-brand) 12%, transparent)",
-                      color: "var(--accent-brand)",
-                    }}
-                  >
-                    MÓDULO {m.n.toString().padStart(2, "0")}
-                  </span>
-                </div>
-                <h3 className="text-lg font-semibold text-ink-primary leading-tight mb-2">
-                  {m.title}
-                </h3>
-                <p className="text-[13px] text-ink-secondary leading-relaxed mb-4">
-                  {m.description}
-                </p>
-
-                <ul className="space-y-1.5 mb-4 flex-1">
-                  {m.bullets.map((b) => (
-                    <li
-                      key={b}
-                      className="text-[12px] text-ink-secondary flex gap-2"
-                    >
-                      <span className="text-accent-brand shrink-0">▸</span>
-                      <span>{b}</span>
-                    </li>
-                  ))}
-                </ul>
-
-                <div
-                  className="rounded-md px-3 py-2 mb-3 text-[12px]"
+          <div className="grid md:grid-cols-2 gap-5">
+            {MODULES.map((m) => {
+              const { accent, icon } = moduleAccent(m.n);
+              return (
+                <article
+                  key={m.n}
                   style={{
-                    background:
-                      "color-mix(in srgb, var(--semantic-positive) 8%, transparent)",
-                    color: "var(--semantic-positive)",
+                    background: C.surface2,
+                    border: `1px solid ${C.border}`,
+                    borderTop: `3px solid ${accent}`,
+                    borderRadius: 14,
+                    padding: 24,
+                    display: "flex",
+                    flexDirection: "column",
+                    position: "relative",
+                    overflow: "hidden",
                   }}
                 >
-                  <span className="font-semibold">✓ Dato real: </span>
-                  {m.realData}
-                </div>
+                  {/* Glow decorativo */}
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: -40,
+                      right: -40,
+                      width: 140,
+                      height: 140,
+                      borderRadius: "50%",
+                      background: `radial-gradient(circle, ${accent}33 0%, transparent 70%)`,
+                      pointerEvents: "none",
+                    }}
+                  />
 
-                <div className="border-t border-rule/40 pt-3 space-y-2">
-                  <p className="label-uppercase">Evidencia científica</p>
-                  {m.evidence.map((e, i) => (
-                    <div key={i} className="text-[11px]">
-                      <p className="font-medium text-ink-primary">
-                        <span
-                          style={{ color: "var(--semantic-warning)" }}
-                          aria-label={`Nivel ${e.level}`}
+                  {/* Header: icon + module number */}
+                  <div className="flex items-center gap-3 mb-3 relative">
+                    <span
+                      style={{
+                        width: 38,
+                        height: 38,
+                        borderRadius: 10,
+                        background: `${accent}22`,
+                        color: accent,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontSize: 18,
+                        flexShrink: 0,
+                      }}
+                    >
+                      {icon}
+                    </span>
+                    <span
+                      style={{
+                        fontSize: 10,
+                        fontWeight: 700,
+                        letterSpacing: "0.1em",
+                        textTransform: "uppercase",
+                        color: accent,
+                        background: `${accent}1a`,
+                        padding: "4px 10px",
+                        borderRadius: 4,
+                      }}
+                    >
+                      Módulo {String(m.n).padStart(2, "0")}
+                    </span>
+                  </div>
+
+                  <h3
+                    style={{
+                      fontSize: 19,
+                      fontWeight: 700,
+                      color: C.text,
+                      marginBottom: 10,
+                      lineHeight: 1.25,
+                    }}
+                  >
+                    {m.title}
+                  </h3>
+                  <p
+                    style={{
+                      fontSize: 13,
+                      color: C.textMuted,
+                      lineHeight: 1.6,
+                      marginBottom: 16,
+                    }}
+                  >
+                    {m.description}
+                  </p>
+
+                  <ul
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 7,
+                      marginBottom: 16,
+                      flex: 1,
+                      listStyle: "none",
+                      padding: 0,
+                    }}
+                  >
+                    {m.bullets.map((b) => (
+                      <li
+                        key={b}
+                        style={{
+                          fontSize: 12.5,
+                          color: C.textMuted,
+                          display: "flex",
+                          gap: 8,
+                          alignItems: "flex-start",
+                          lineHeight: 1.5,
+                        }}
+                      >
+                        <span style={{ color: accent, flexShrink: 0 }}>▸</span>
+                        <span>{b}</span>
+                      </li>
+                    ))}
+                  </ul>
+
+                  <div
+                    style={{
+                      background: "rgba(63,185,80,0.08)",
+                      border: "1px solid rgba(63,185,80,0.25)",
+                      borderRadius: 8,
+                      padding: "10px 12px",
+                      marginBottom: 14,
+                      fontSize: 12,
+                      color: C.green,
+                    }}
+                  >
+                    <span style={{ fontWeight: 700 }}>✓ Dato real:</span>{" "}
+                    {m.realData}
+                  </div>
+
+                  <div
+                    style={{
+                      borderTop: `1px solid ${C.border}`,
+                      paddingTop: 12,
+                    }}
+                  >
+                    <p
+                      style={{
+                        fontSize: 10,
+                        textTransform: "uppercase",
+                        letterSpacing: "0.08em",
+                        color: C.textDim,
+                        marginBottom: 8,
+                        fontWeight: 600,
+                      }}
+                    >
+                      Evidencia científica
+                    </p>
+                    {m.evidence.map((e, i) => (
+                      <div key={i} style={{ fontSize: 11, marginBottom: 6 }}>
+                        <p
+                          style={{
+                            color: C.text,
+                            fontWeight: 500,
+                            lineHeight: 1.4,
+                          }}
                         >
-                          {"★".repeat(e.level)}
-                        </span>{" "}
-                        {e.cite}
-                      </p>
-                      <p className="text-ink-tertiary leading-snug">
-                        {e.finding}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              </article>
-            ))}
+                          <span style={{ color: C.yellow }}>
+                            {"★".repeat(e.level)}
+                          </span>{" "}
+                          {e.cite}
+                        </p>
+                        <p
+                          style={{
+                            color: C.textMuted,
+                            lineHeight: 1.5,
+                            marginTop: 2,
+                          }}
+                        >
+                          {e.finding}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </article>
+              );
+            })}
           </div>
         </div>
       </section>
 
       {/* ─────────────── DATOS REALES ─────────────── */}
-      <section
-        className="border-t border-rule/60"
-        style={{ background: "var(--bg-card-subtle)" }}
-      >
-        <div className="max-w-6xl mx-auto px-4 md:px-8 py-16 md:py-24">
-          <div className="text-center mb-10">
-            <p className="label-uppercase mb-3">Datos reales · José Luis Cerón</p>
-            <h2 className="text-2xl md:text-4xl wordmark text-ink-primary leading-tight max-w-2xl mx-auto">
+      <section style={{ background: C.bg, padding: "80px 0" }}>
+        <div className="max-w-6xl mx-auto px-4 md:px-8">
+          <div className="text-center mb-12">
+            <p
+              style={{
+                fontSize: 11,
+                textTransform: "uppercase",
+                letterSpacing: "0.2em",
+                color: C.accent,
+                marginBottom: 12,
+                fontWeight: 600,
+              }}
+            >
+              Datos reales · José Luis Cerón
+            </p>
+            <h2
+              style={{
+                fontSize: "clamp(26px, 4vw, 42px)",
+                fontWeight: 800,
+                lineHeight: 1.15,
+                color: C.text,
+                maxWidth: 720,
+                margin: "0 auto",
+              }}
+            >
               Lo que el análisis descubrió{" "}
-              <span className="italic text-accent-brand">en la primera semana</span>
+              <span style={{ color: C.green }}>en la primera semana</span>
             </h2>
-            <p className="text-sm text-ink-secondary mt-3 max-w-xl mx-auto">
-              No simulaciones. Datos reales descargados de Garmin, analizados con
-              el sistema activo.
+            <p
+              style={{
+                fontSize: 14,
+                color: C.textMuted,
+                marginTop: 14,
+                maxWidth: 580,
+                margin: "14px auto 0",
+                lineHeight: 1.6,
+              }}
+            >
+              No simulaciones. Datos reales descargados de Garmin, analizados
+              con el sistema activo.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-4 md:gap-5">
+          <div className="grid md:grid-cols-3 gap-5">
             {REAL_DATA_CARDS.map((c) => (
-              <article key={c.headline} className="card">
-                <p className="label-uppercase mb-3">{c.tag}</p>
-                <p className="metric-display text-5xl md:text-6xl text-accent-brand leading-none">
+              <article
+                key={c.headline}
+                style={{
+                  background: C.surface,
+                  border: `1px solid ${C.border}`,
+                  borderRadius: 14,
+                  padding: 24,
+                }}
+              >
+                <p
+                  style={{
+                    fontSize: 10,
+                    textTransform: "uppercase",
+                    letterSpacing: "0.1em",
+                    color: C.textDim,
+                    fontWeight: 600,
+                    marginBottom: 16,
+                  }}
+                >
+                  {c.tag}
+                </p>
+                <p
+                  style={{
+                    fontSize: "clamp(48px, 6vw, 64px)",
+                    fontWeight: 800,
+                    color: C.accent,
+                    lineHeight: 1,
+                    fontVariantNumeric: "tabular-nums",
+                    letterSpacing: "-0.02em",
+                  }}
+                >
                   {c.headline}
                 </p>
-                <p className="text-sm font-semibold text-ink-primary mt-2 mb-3">
+                <p
+                  style={{
+                    fontSize: 14,
+                    fontWeight: 700,
+                    color: C.text,
+                    marginTop: 10,
+                    marginBottom: 12,
+                  }}
+                >
                   {c.sub}
                 </p>
-                <p className="text-[13px] text-ink-secondary leading-relaxed">
+                <p
+                  style={{
+                    fontSize: 13,
+                    color: C.textMuted,
+                    lineHeight: 1.65,
+                  }}
+                >
                   {c.body}
                 </p>
               </article>
@@ -361,107 +846,160 @@ export default function HomePage() {
       </section>
 
       {/* ─────────────── PLANES ─────────────── */}
-      <section id="planes" className="border-t border-rule/60 bg-bg-content">
-        <div className="max-w-5xl mx-auto px-4 md:px-8 py-16 md:py-24">
-          <div className="text-center mb-10">
-            <p className="label-uppercase mb-3">Planes</p>
-            <h2 className="text-2xl md:text-4xl wordmark text-ink-primary leading-tight">
+      <section
+        id="planes"
+        style={{
+          background: C.surface,
+          borderTop: `1px solid ${C.border}`,
+          borderBottom: `1px solid ${C.border}`,
+          padding: "80px 0",
+        }}
+      >
+        <div className="max-w-5xl mx-auto px-4 md:px-8">
+          <div className="text-center mb-12">
+            <p
+              style={{
+                fontSize: 11,
+                textTransform: "uppercase",
+                letterSpacing: "0.2em",
+                color: C.accent,
+                marginBottom: 12,
+                fontWeight: 600,
+              }}
+            >
+              Planes
+            </p>
+            <h2
+              style={{
+                fontSize: "clamp(26px, 4vw, 42px)",
+                fontWeight: 800,
+                lineHeight: 1.15,
+                color: C.text,
+              }}
+            >
               Comparado con lo que ya pagas
             </h2>
-            <p className="text-sm text-ink-secondary mt-3 max-w-xl mx-auto">
+            <p
+              style={{
+                fontSize: 14,
+                color: C.textMuted,
+                marginTop: 14,
+                maxWidth: 560,
+                margin: "14px auto 0",
+                lineHeight: 1.6,
+              }}
+            >
               Versus Garmin Connect+ ($8.99/mes) o un entrenador personal
               ($150–400/mes).
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-4 md:gap-5">
+          <div className="grid md:grid-cols-2 gap-5">
             {PLANS.map((p) => {
-              const isRecommended = p.badge === "Recomendado";
+              const isRec = p.badge === "Recomendado";
               return (
                 <article
                   key={p.tier}
-                  className={isRecommended ? "card-dark relative" : "card relative"}
                   style={{
-                    ...(isRecommended
-                      ? {}
-                      : { border: "1px solid var(--rule)" }),
+                    background: isRec ? C.surface2 : C.surface,
+                    border: isRec
+                      ? `1px solid ${C.accent}`
+                      : `1px solid ${C.border}`,
+                    borderRadius: 14,
+                    padding: 28,
+                    position: "relative",
+                    boxShadow: isRec
+                      ? `0 0 40px rgba(47,129,247,0.15)`
+                      : "none",
                   }}
                 >
                   {p.badge && (
                     <span
-                      className="absolute -top-3 right-5 text-[10px] font-bold px-3 py-1 rounded-full"
                       style={{
-                        background: "var(--accent-brand)",
-                        color: "white",
-                        letterSpacing: "0.05em",
+                        position: "absolute",
+                        top: -12,
+                        right: 24,
+                        fontSize: 10,
+                        fontWeight: 800,
+                        letterSpacing: "0.08em",
+                        textTransform: "uppercase",
+                        background: C.accent,
+                        color: "#fff",
+                        padding: "5px 12px",
+                        borderRadius: 20,
                       }}
                     >
-                      {p.badge.toUpperCase()}
+                      {p.badge}
                     </span>
                   )}
                   <p
-                    className="label-uppercase mb-2"
-                    style={
-                      isRecommended ? { color: "rgba(255,255,255,0.5)" } : undefined
-                    }
+                    style={{
+                      fontSize: 11,
+                      textTransform: "uppercase",
+                      letterSpacing: "0.1em",
+                      color: C.textMuted,
+                      fontWeight: 600,
+                      marginBottom: 12,
+                    }}
                   >
                     Liebre {p.tier}
                   </p>
-                  <div>
-                    <p
-                      className="metric-display text-5xl leading-none"
+                  <div className="flex items-baseline gap-2 mb-1">
+                    <span
                       style={{
-                        color: isRecommended ? "#ffffff" : "var(--ink-primary)",
+                        fontSize: 54,
+                        fontWeight: 800,
+                        color: C.text,
+                        lineHeight: 1,
+                        letterSpacing: "-0.02em",
+                        fontVariantNumeric: "tabular-nums",
                       }}
                     >
                       ${p.price}
-                      <span
-                        className="text-base font-normal ml-1"
-                        style={{
-                          color: isRecommended
-                            ? "rgba(255,255,255,0.6)"
-                            : "var(--ink-tertiary)",
-                        }}
-                      >
-                        USD/mes
-                      </span>
-                    </p>
-                    <p
-                      className="text-[13px] mt-2 tnum"
-                      style={{
-                        color: isRecommended
-                          ? "rgba(255,255,255,0.65)"
-                          : "var(--ink-secondary)",
-                      }}
-                    >
-                      {fmtCOP(p.price)}{" "}
-                      <span
-                        style={{
-                          color: isRecommended
-                            ? "rgba(255,255,255,0.4)"
-                            : "var(--ink-tertiary)",
-                        }}
-                      >
-                        COP/mes aprox · tasa referencial
-                      </span>
-                    </p>
+                    </span>
+                    <span style={{ color: C.textMuted, fontSize: 14 }}>
+                      USD/mes
+                    </span>
                   </div>
+                  <p
+                    style={{
+                      fontSize: 13,
+                      color: C.textMuted,
+                      marginBottom: 24,
+                      fontVariantNumeric: "tabular-nums",
+                    }}
+                  >
+                    {fmtCOP(p.price)}{" "}
+                    <span style={{ color: C.textDim }}>
+                      COP/mes aprox · tasa referencial
+                    </span>
+                  </p>
+
                   <ul
-                    className="space-y-2 mt-6 mb-6 text-sm"
-                    style={
-                      isRecommended
-                        ? { color: "rgba(255,255,255,0.85)" }
-                        : { color: "var(--ink-secondary)" }
-                    }
+                    style={{
+                      listStyle: "none",
+                      padding: 0,
+                      margin: 0,
+                      marginBottom: 24,
+                    }}
                   >
                     {p.features.map((f) => (
-                      <li key={f} className="flex gap-2">
+                      <li
+                        key={f}
+                        style={{
+                          fontSize: 13.5,
+                          color: C.text,
+                          marginBottom: 10,
+                          display: "flex",
+                          gap: 10,
+                          lineHeight: 1.5,
+                        }}
+                      >
                         <span
-                          className="shrink-0"
                           style={{
-                            color: isRecommended
-                              ? "var(--accent-brand-soft)"
-                              : "var(--semantic-positive)",
+                            color: isRec ? C.accent : C.green,
+                            flexShrink: 0,
+                            fontWeight: 700,
                           }}
                         >
                           ✓
@@ -470,26 +1008,32 @@ export default function HomePage() {
                       </li>
                     ))}
                   </ul>
+
                   <Link
                     href="/dashboard"
-                    className={`block text-center px-4 py-3 rounded-md font-semibold text-sm transition ${
-                      isRecommended
-                        ? "bg-accent-brand-soft text-white hover:bg-accent-brand"
-                        : "bg-ink-primary text-white hover:bg-black"
-                    }`}
-                    style={
-                      isRecommended ? { background: "var(--accent-brand-soft)" } : {}
-                    }
+                    style={{
+                      display: "block",
+                      textAlign: "center",
+                      padding: "13px 20px",
+                      borderRadius: 8,
+                      fontWeight: 700,
+                      fontSize: 14,
+                      textDecoration: "none",
+                      background: isRec ? C.accent : "transparent",
+                      color: isRec ? "#fff" : C.text,
+                      border: isRec ? "none" : `1px solid ${C.border}`,
+                    }}
                   >
                     Probar gratis
                   </Link>
+
                   <p
-                    className="text-[11px] mt-4 leading-snug"
-                    style={
-                      isRecommended
-                        ? { color: "rgba(255,255,255,0.55)" }
-                        : { color: "var(--ink-tertiary)" }
-                    }
+                    style={{
+                      fontSize: 11,
+                      color: C.textDim,
+                      marginTop: 14,
+                      lineHeight: 1.55,
+                    }}
                   >
                     {p.footnote}
                   </p>
@@ -501,99 +1045,119 @@ export default function HomePage() {
       </section>
 
       {/* ─────────────── CTA FINAL ─────────────── */}
-      <section className="border-t border-rule/60 bg-bg-content">
-        <div className="max-w-3xl mx-auto px-4 md:px-8 py-16 md:py-20 text-center">
-          <h2 className="text-2xl md:text-4xl wordmark text-ink-primary leading-tight mb-4">
-            Conoce <span className="italic text-accent-brand">tu</span> respuesta
-            fisiológica antes de la próxima carrera
+      <section
+        style={{
+          background: `radial-gradient(ellipse 80% 60% at 50% 50%, #0d2044 0%, ${C.bg} 70%)`,
+          padding: "80px 0",
+          textAlign: "center",
+        }}
+      >
+        <div className="max-w-3xl mx-auto px-4 md:px-8">
+          <h2
+            style={{
+              fontSize: "clamp(28px, 4vw, 44px)",
+              fontWeight: 800,
+              lineHeight: 1.15,
+              color: C.text,
+              marginBottom: 16,
+            }}
+          >
+            Conoce <span style={{ color: C.accent }}>tu</span> respuesta
+            fisiológica
+            <br />
+            antes de la próxima carrera
           </h2>
-          <p className="text-sm md:text-base text-ink-secondary leading-relaxed mb-7 max-w-xl mx-auto">
+          <p
+            style={{
+              fontSize: 15,
+              color: C.textMuted,
+              lineHeight: 1.7,
+              marginBottom: 28,
+              maxWidth: 580,
+              margin: "0 auto 28px",
+            }}
+          >
             Liebre se conecta a tu Garmin, construye tu perfil en 14 noches y
-            empieza a ajustar tu plan con los datos que tu cuerpo realmente da —
-            no con promedios poblacionales.
+            empieza a ajustar tu plan con los datos que tu cuerpo realmente da
+            — no con promedios poblacionales.
           </p>
           <Link
             href="/dashboard"
-            className="inline-block px-7 py-3 rounded-md bg-accent-brand text-white font-semibold text-sm hover:opacity-90 transition"
+            style={{
+              display: "inline-block",
+              background: C.accent,
+              color: "#fff",
+              fontWeight: 700,
+              fontSize: 15,
+              padding: "14px 32px",
+              borderRadius: 8,
+              textDecoration: "none",
+            }}
           >
-            Entrar al dashboard
+            Entrar al dashboard →
           </Link>
         </div>
       </section>
 
       {/* ─────────────── FOOTER ─────────────── */}
       <footer
-        className="border-t border-rule/60"
-        style={{ background: "var(--bg-sidebar)", color: "var(--ink-on-dark)" }}
+        style={{
+          background: C.surface,
+          borderTop: `1px solid ${C.border}`,
+          padding: "48px 0 32px",
+        }}
       >
-        <div className="max-w-6xl mx-auto px-4 md:px-8 py-10 md:py-14">
-          <div className="grid md:grid-cols-3 gap-8">
+        <div className="max-w-6xl mx-auto px-4 md:px-8">
+          <div className="grid md:grid-cols-3 gap-10 mb-10">
             <div>
-              <p className="wordmark text-2xl mb-2">
-                liebre<span style={{ color: "var(--accent-brand-soft)" }}>.</span>
+              <p
+                className="wordmark text-2xl mb-3"
+                style={{ color: C.text }}
+              >
+                liebre<span style={{ color: C.accent }}>.</span>
               </p>
               <p
-                className="text-xs leading-relaxed"
-                style={{ color: "rgba(255,255,255,0.6)" }}
+                style={{
+                  fontSize: 13,
+                  color: C.textMuted,
+                  lineHeight: 1.65,
+                  maxWidth: 280,
+                }}
               >
                 Tu pacer con inteligencia artificial y ciencia validada.
-                <br />
                 Construido para corredores que quieren entender, no solo medir.
               </p>
             </div>
+            <FooterLinks
+              title="Producto"
+              links={[
+                { href: "#modulos", label: "Módulos" },
+                { href: "#comparativa", label: "vs Garmin Connect" },
+                { href: "#planes", label: "Planes" },
+                { href: "/dashboard", label: "Demo del dashboard" },
+              ]}
+            />
             <div>
               <p
-                className="label-uppercase mb-3"
-                style={{ color: "rgba(255,255,255,0.5)" }}
-              >
-                Producto
-              </p>
-              <ul className="space-y-1.5 text-sm">
-                <li>
-                  <a
-                    href="#modulos"
-                    style={{ color: "rgba(255,255,255,0.75)" }}
-                    className="hover:opacity-100"
-                  >
-                    Módulos
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="#comparativa"
-                    style={{ color: "rgba(255,255,255,0.75)" }}
-                  >
-                    vs Garmin Connect
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="#planes"
-                    style={{ color: "rgba(255,255,255,0.75)" }}
-                  >
-                    Planes
-                  </a>
-                </li>
-                <li>
-                  <Link
-                    href="/dashboard"
-                    style={{ color: "rgba(255,255,255,0.75)" }}
-                  >
-                    Demo del dashboard
-                  </Link>
-                </li>
-              </ul>
-            </div>
-            <div>
-              <p
-                className="label-uppercase mb-3"
-                style={{ color: "rgba(255,255,255,0.5)" }}
+                style={{
+                  fontSize: 11,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.1em",
+                  color: C.textDim,
+                  marginBottom: 12,
+                  fontWeight: 600,
+                }}
               >
                 Tecnología
               </p>
               <ul
-                className="space-y-1.5 text-xs"
-                style={{ color: "rgba(255,255,255,0.6)" }}
+                style={{
+                  listStyle: "none",
+                  padding: 0,
+                  fontSize: 12,
+                  color: C.textMuted,
+                  lineHeight: 1.85,
+                }}
               >
                 <li>Powered by Anthropic Claude</li>
                 <li>Datos: Garmin Connect</li>
@@ -602,14 +1166,23 @@ export default function HomePage() {
             </div>
           </div>
           <div
-            className="mt-10 pt-6 border-t flex flex-col md:flex-row gap-3 items-start md:items-center justify-between text-[11px]"
             style={{
-              borderColor: "rgba(255,255,255,0.08)",
-              color: "rgba(255,255,255,0.45)",
+              paddingTop: 24,
+              borderTop: `1px solid ${C.border}`,
+              display: "flex",
+              flexWrap: "wrap",
+              justifyContent: "space-between",
+              gap: 10,
+              fontSize: 11,
+              color: C.textDim,
+              lineHeight: 1.5,
             }}
           >
-            <p>© {new Date().getFullYear()} Liebre. Todos los derechos reservados.</p>
-            <p className="max-w-md md:text-right">
+            <p>
+              © {new Date().getFullYear()} Liebre. Todos los derechos
+              reservados.
+            </p>
+            <p style={{ maxWidth: 460, textAlign: "right" }}>
               Los reportes son informativos y complementan — no reemplazan — la
               evaluación de un médico deportivo o fisioterapeuta.
             </p>
@@ -617,5 +1190,76 @@ export default function HomePage() {
         </div>
       </footer>
     </main>
+  );
+}
+
+/* ─── Sub-componentes ─── */
+
+function NavLink({
+  href,
+  children,
+}: {
+  href: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <a
+      href={href}
+      className="hidden sm:inline text-sm px-3 py-1.5"
+      style={{
+        color: C.textMuted,
+        textDecoration: "none",
+        fontWeight: 500,
+      }}
+    >
+      {children}
+    </a>
+  );
+}
+
+function FooterLinks({
+  title,
+  links,
+}: {
+  title: string;
+  links: Array<{ href: string; label: string }>;
+}) {
+  return (
+    <div>
+      <p
+        style={{
+          fontSize: 11,
+          textTransform: "uppercase",
+          letterSpacing: "0.1em",
+          color: C.textDim,
+          marginBottom: 12,
+          fontWeight: 600,
+        }}
+      >
+        {title}
+      </p>
+      <ul
+        style={{
+          listStyle: "none",
+          padding: 0,
+          fontSize: 13,
+          lineHeight: 1.9,
+        }}
+      >
+        {links.map((l) => (
+          <li key={l.href}>
+            <a
+              href={l.href}
+              style={{
+                color: C.textMuted,
+                textDecoration: "none",
+              }}
+            >
+              {l.label}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }

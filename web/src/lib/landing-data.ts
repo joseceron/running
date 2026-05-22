@@ -12,6 +12,22 @@ export type Module = {
   evidence: Array<{ level: 3 | 2 | 1; cite: string; finding: string }>;
 };
 
+/** Paleta de acentos por módulo en orden 1-8. */
+const MODULE_ACCENTS = [
+  { accent: "#2f81f7", icon: "◐" }, // 1 zonas — azul
+  { accent: "#3fb950", icon: "❤" }, // 2 HRV — verde
+  { accent: "#f0883e", icon: "▲" }, // 3 ACWR — naranja
+  { accent: "#a5a0ff", icon: "◇" }, // 4 biomecánica — púrpura
+  { accent: "#ff7b72", icon: "✚" }, // 5 lesión — rojo
+  { accent: "#e3b341", icon: "◈" }, // 6 nutrición — amarillo
+  { accent: "#39d353", icon: "↗" }, // 7 adaptación — teal
+  { accent: "#79c0ff", icon: "✦" }, // 8 evidencia — azul claro
+] as const;
+
+export function moduleAccent(n: number): { accent: string; icon: string } {
+  return MODULE_ACCENTS[n - 1] ?? MODULE_ACCENTS[0];
+}
+
 export const HERO_STATS = [
   { value: "8", label: "Módulos de análisis" },
   { value: "40+", label: "Papers científicos integrados" },
