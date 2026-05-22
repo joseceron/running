@@ -13,7 +13,11 @@ export type GlossaryEntry = {
   example?: string;
 };
 
-export const GLOSSARY = {
+// Definimos las KEYS primero, luego anotamos GLOSSARY como
+// Record<GlossaryKey, GlossaryEntry> para que TODOS los items se traten
+// como GlossaryEntry (con example?: opcional) en lugar de inferir tipos
+// literales por entry.
+const _GLOSSARY_DATA = {
   cadencia: {
     term: "Cadencia",
     short:
@@ -184,4 +188,8 @@ export const GLOSSARY = {
   },
 } as const;
 
-export type GlossaryKey = keyof typeof GLOSSARY;
+export type GlossaryKey = keyof typeof _GLOSSARY_DATA;
+
+// Re-export as Record<GlossaryKey, GlossaryEntry> para que TypeScript trate
+// cada entrada como GlossaryEntry uniforme (example?: opcional disponible).
+export const GLOSSARY: Record<GlossaryKey, GlossaryEntry> = _GLOSSARY_DATA;
