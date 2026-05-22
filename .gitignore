@@ -1,0 +1,112 @@
+# ─────────────────────────────────────────────────────────────────
+# SISTEMA OPERATIVO
+# ─────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+*.swp
+*~
+
+# ─────────────────────────────────────────────────────────────────
+# EDITOR / IDE
+# ─────────────────────────────────────────────────────────────────
+.claude/
+.vscode/
+.idea/
+*.iml
+.cursor/
+.aider*
+
+# ─────────────────────────────────────────────────────────────────
+# SECRETOS — NUNCA COMMITEAR
+# ─────────────────────────────────────────────────────────────────
+.env
+.env.*
+!.env.example
+*.env
+secrets/
+*.pem
+*.key
+*-credentials.json
+service-account*.json
+google-credentials*.json
+
+# ─────────────────────────────────────────────────────────────────
+# DATOS PERSONALES / TOKENS (Liebre)
+# ─────────────────────────────────────────────────────────────────
+.garmin_tokens/
+.garmin_session
+runner_agent.db
+*.db
+*.sqlite
+*.sqlite3
+
+# ─────────────────────────────────────────────────────────────────
+# PYTHON — runner-agent/
+# ─────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+ENV/
+env/
+*.egg-info/
+*.egg
+dist/
+build/
+.eggs/
+
+# Testing & coverage
+.pytest_cache/
+.coverage
+.coverage.*
+.coverage_html/
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+.tox/
+nosetests.xml
+coverage.xml
+
+# Jupyter
+.ipynb_checkpoints/
+
+# ─────────────────────────────────────────────────────────────────
+# NODE / NEXT.JS — web/
+# ─────────────────────────────────────────────────────────────────
+node_modules/
+.npm
+.yarn-integrity
+*-debug.log*
+yarn-error.log
+
+# Next.js
+.next/
+out/
+*.tsbuildinfo
+
+# Vercel / Firebase
+.vercel
+.firebase/
+firebase-debug.log
+
+# ─────────────────────────────────────────────────────────────────
+# LOGS / TEMP
+# ─────────────────────────────────────────────────────────────────
+*.log
+logs/
+tmp/
+.cache/
+
+# ─────────────────────────────────────────────────────────────────
+# DOCKER / BUILDS
+# ─────────────────────────────────────────────────────────────────
+*.tar
+*.tar.gz
+
+# ─────────────────────────────────────────────────────────────────
+# OUTPUT del agente (reportes locales que no van al repo)
+# ─────────────────────────────────────────────────────────────────
+runner-agent/output/

@@ -1,0 +1,21 @@
+.env
+*.db
+.garmin_tokens/
+__pycache__/
+.venv/
+*.pyc
+*.pyo
+.DS_Store
+
+# Tests + coverage
+.pytest_cache/
+.coverage
+.coverage_html/
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+
+# Build / dist
+build/
+dist/
+*.egg-info/

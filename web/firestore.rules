@@ -1,0 +1,10 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Leads se escriben solo desde Cloud Functions (admin SDK omite reglas).
+    // El cliente nunca puede leer ni listar.
+    match /leads/{leadId} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -1,0 +1,49 @@
+[project]
+name = "liebre-runner-agent"
+version = "0.2.0"
+description = "Liebre — Agente IA de entrenamiento personalizado para corredores (multi-tenant SaaS)"
+requires-python = ">=3.11"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = [
+  "-ra",
+  "--strict-markers",
+  "--strict-config",
+]
+# Cobertura: opt-in con `pytest --cov`. En CI agregar --cov-fail-under=70
+# cuando los módulos api/ y agents/ estén refactorizados al stack multitenant.
+markers = [
+  "unit: tests unitarios rápidos (sin red, sin DB real)",
+  "integration: tests con Postgres en testcontainer",
+  "slow: tests >2s",
+]
+filterwarnings = [
+  "ignore::DeprecationWarning",
+]
+
+[tool.coverage.run]
+branch = true
+omit = [
+  "tests/*",
+  "alembic/*",
+  "scripts/*",
+  "bootstrap_env.py",
+  "inject_browser_session.py",
+  "init_profile.py",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+extend-exclude = ["alembic/versions"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "N", "SIM", "RUF"]
+ignore = ["E501"]  # line-length handled by formatter
+
+[tool.mypy]
+python_version = "3.11"
+strict = false   # progresivo; subir gradualmente
+ignore_missing_imports = true
+exclude = ["alembic/versions", "tests"]

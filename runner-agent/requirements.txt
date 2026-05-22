@@ -1,0 +1,25 @@
+garminconnect>=0.2.25
+anthropic>=0.40.0
+requests>=2.32.0
+python-dotenv>=1.0.1
+apscheduler>=3.10.4
+
+# Postgres + ORM (Liebre SaaS multitenant)
+SQLAlchemy>=2.0.30
+psycopg2-binary>=2.9.9
+alembic>=1.13.2
+
+# API
+fastapi>=0.115.0
+uvicorn[standard]>=0.30.0
+pydantic>=2.8.0
+pydantic-settings>=2.4.0
+python-multipart>=0.0.9
+
+# GCP integrations
+google-cloud-secret-manager>=2.20.0
+google-cloud-pubsub>=2.23.0
+firebase-admin>=6.5.0
+
+# Observabilidad
+structlog>=24.4.0

@@ -1,0 +1,103 @@
+@import "tailwindcss";
+
+:root {
+  /* Paleta Liebre — deportiva, fresca, tecnológica */
+  --ink: #0e1116;            /* casi negro, alto contraste */
+  --ink-soft: #1f2430;
+  --paper: #f8f7f2;          /* blanco hueso */
+  --paper-warm: #efebe2;
+  --accent: #00b8a9;         /* turquesa deportivo */
+  --accent-deep: #009688;
+  --signal: #ff4d5e;         /* alerta */
+  --highlight: #f4b84a;      /* destacar números */
+  --muted: #6b7280;
+  --rule: #d1d5db;
+
+  --font-display: var(--font-instrument-serif);
+  --font-body: var(--font-inter);
+  --font-mono: var(--font-jetbrains-mono);
+}
+
+@theme inline {
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-paper: var(--paper);
+  --color-paper-warm: var(--paper-warm);
+  --color-accent: var(--accent);
+  --color-accent-deep: var(--accent-deep);
+  --color-signal: var(--signal);
+  --color-highlight: var(--highlight);
+  --color-muted: var(--muted);
+  --color-rule: var(--rule);
+
+  --font-display: var(--font-display);
+  --font-body: var(--font-body);
+  --font-mono: var(--font-mono);
+}
+
+html {
+  background: var(--paper);
+  color: var(--ink);
+}
+
+body {
+  font-family: var(--font-body), ui-sans-serif, system-ui, sans-serif;
+  font-feature-settings: "ss01", "cv11";
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Wordmark "Liebre" */
+.wordmark {
+  font-family: var(--font-display), ui-serif, Georgia, serif;
+  letter-spacing: -0.02em;
+  font-weight: 400;
+}
+.wordmark .dot {
+  color: var(--accent-deep);
+}
+
+/* Número grande métrico */
+.metric {
+  font-family: var(--font-display);
+  font-feature-settings: "tnum";
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
+
+/* Cifras pequeñas tabulares */
+.tnum {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Pulso animado para latest value */
+@keyframes liebre-pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50%      { transform: scale(1.12); opacity: 0.8; }
+}
+.pulse-dot {
+  animation: liebre-pulse 1.8s ease-in-out infinite;
+}
+
+/* Focus ring uniforme */
+:where(button, a, input, select, textarea):focus-visible {
+  outline: 2px solid var(--accent-deep);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+/* Status pills */
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+}
+.status-pill.optimal           { background: rgba(0, 184, 169, 0.12); color: var(--accent-deep); }
+.status-pill.reduced           { background: rgba(244, 184, 74, 0.18); color: #a3680b; }
+.status-pill.suppressed        { background: rgba(255, 77, 94, 0.14); color: #c8323f; }
+.status-pill.building_baseline { background: rgba(107, 114, 128, 0.14); color: var(--muted); }

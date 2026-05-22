@@ -1,0 +1,22 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: liebre-postgres-dev
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: liebre_app
+      POSTGRES_PASSWORD: liebre_dev_pw
+      POSTGRES_DB: liebre
+    ports:
+      - "5432:5432"
+    volumes:
+      - liebre_pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U liebre_app -d liebre"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  liebre_pg_data:
+    driver: local
