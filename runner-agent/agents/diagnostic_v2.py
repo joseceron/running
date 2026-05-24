@@ -18,6 +18,7 @@ from anthropic import Anthropic
 from dotenv import load_dotenv
 from sqlalchemy.orm import Session
 
+from agents.today_action_builder import build_today_action
 from memory.repositories import hrv as hrv_repo
 from memory.repositories import runner_profile, weekly as weekly_repo
 
@@ -81,6 +82,21 @@ CONTEXTO PERMANENTE DEL CORREDOR (no varía entre sesiones):
   enfocarse en recuperación, complemento o sesión de mañana — NO mandes a entrenar \
   algo que ya hizo.
 
+6. CONSISTENCIA CON EL PLAN (NO NEGOCIABLE). El payload trae `today_action` con \
+   la decisión inequívoca para hoy, calculada por el motor de plan + carga + HRV. \
+   Tu campo `action` DEBE ser estrictamente coherente con `today_action.status`:
+   - `today_action.status == "rest"`: tu `action` describe recuperación (sueño, \
+     hidratación, movilidad, foam roller, caminata conversacional). PROHIBIDO \
+     mandar a correr, rodar, Z2 ni nada que sume carga aeróbica.
+   - `today_action.status == "active_recovery"`: tu `action` describe movilidad o \
+     caminata muy ligera Z1 ≤30 min. PROHIBIDO sesión de calidad o volumen alto.
+   - `today_action.status == "trained_already"`: tu `action` describe post-recovery \
+     (estiramientos, nutrición post, sueño temprano). PROHIBIDO sumar otra sesión.
+   - `today_action.status == "train"`: tu `action` debe coincidir con el verbo y \
+     la zona de `today_action.headline` (no inventes una sesión diferente).
+   Si la narrativa fisiológica te invita a contradecir, prevalece `today_action`. \
+   La narrativa puede explicar el porqué, pero la acción se subordina al plan.
+
 FORMATO DE RESPUESTA (JSON estricto):
 {
   "narrative": "Párrafo de 3-5 oraciones cruzando 2-3 métricas con causalidad. \
@@ -138,12 +154,35 @@ def _build_user_message(
 
     activities_today = _load_today_activities(user_id, target)
 
+    # Decisión inequívoca de "qué hacer hoy" — misma lógica que consume
+    # /report. La inyectamos para que el LLM no contradiga al plan (issue
+    # observada 2026-05-24: "DESCANSA HOY" + LLM diciendo "ejecuta 45 min").
+    activity_labels = [
+        a.get("label", "")
+        for a in activities_today
+        if isinstance(a, dict) and a.get("label")
+    ]
+    today_action = build_today_action(
+        target=target,
+        activity_labels=activity_labels,
+        acwr=last_week.acwr if last_week else None,
+        hrv_today=latest_hrv,
+        hrv_baseline=baseline,
+    )
+
     payload = {
         "today": target.isoformat(),
         "activities_today": activities_today,
         "training_status_today": (
             "trained" if activities_today else "no_session_yet"
         ),
+        "today_action": {
+            "status": today_action["status"],
+            "temporal": today_action["temporal"],
+            "headline": today_action["headline"],
+            "short_reason": today_action["short_reason"],
+            "reasons": today_action["reasons"],
+        },
         "runner": {
             "name": profile.name,
             "age": profile.age,

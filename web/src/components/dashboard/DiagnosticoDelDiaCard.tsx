@@ -23,11 +23,24 @@ type Props = {
   hrv: HRV;
   weekly: Weekly;
   diagnosis: Diagnosis | null;
+  /**
+   * Cuando TodayActionCard está visible es la fuente de verdad para "qué hacer hoy".
+   * Si lo está, ocultamos el bloque "acción" del LLM para evitar contradicciones
+   * (el LLM no recibe el plan y a veces recomienda lo opuesto al día programado).
+   */
+  todayActionShown?: boolean;
 };
 
-export function DiagnosticoDelDiaCard({ profile, hrv, weekly, diagnosis }: Props) {
+export function DiagnosticoDelDiaCard({
+  profile,
+  hrv,
+  weekly,
+  diagnosis,
+  todayActionShown = false,
+}: Props) {
   const view = diagnosis ?? buildPlaceholderDiagnostico({ hrv, weekly });
   const alert = diagnosis?.alert_level ?? "info";
+  const showActionBlock = !todayActionShown;
 
   return (
     <div
@@ -71,14 +84,21 @@ export function DiagnosticoDelDiaCard({ profile, hrv, weekly, diagnosis }: Props
         {view.narrative}
       </p>
 
-      {/* Acción */}
-      <div className="mt-3.5 pt-3.5 border-t border-rule/60">
-        <span className="label-uppercase">Acción recomendada para hoy</span>
-        <p className="text-[13px] font-medium text-ink-primary mt-1.5 leading-snug">
-          {view.action}
-        </p>
-        <CiteBadge text={view.citation} />
-      </div>
+      {showActionBlock ? (
+        <div className="mt-3.5 pt-3.5 border-t border-rule/60">
+          <span className="label-uppercase">Acción recomendada para hoy</span>
+          <p className="text-[13px] font-medium text-ink-primary mt-1.5 leading-snug">
+            {view.action}
+          </p>
+          <CiteBadge text={view.citation} />
+        </div>
+      ) : (
+        /* TodayActionCard ya indica qué hacer hoy. Aquí solo dejamos la cita
+           para que el análisis siga teniendo respaldo visible. */
+        <div className="mt-3.5 pt-3.5 border-t border-rule/60">
+          <CiteBadge text={view.citation} />
+        </div>
+      )}
     </div>
   );
 }

@@ -101,6 +101,7 @@ export default async function DashboardPage({
               hrv={hrv}
               weekly={weekly}
               diagnosis={diagnosis}
+              todayActionShown={!!report?.today_action}
             />
             {!report?.today_action && (
               <GoalCard profile={profile} daysToGoal={days_to_goal} />

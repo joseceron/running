@@ -19,6 +19,10 @@ from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
+from agents.today_action_builder import (
+    WEEKDAY_PLAN,
+    build_today_action,
+)
 from api.deps import get_current_user_id, get_db
 from memory.repositories import activities as activities_repo
 from memory.repositories import hrv as hrv_repo
@@ -370,18 +374,9 @@ def _build_heart_progress(rhr_today: int | None, rhr_baseline: float) -> HeartPr
 
 
 # ─── Today action: heurística HOY ────────────────────────────
-
-
-# Plan semanal modelo (en fase de reconstrucción de base aeróbica)
-WEEKDAY_PLAN = {
-    0: ("train", "Fuerza A (piernas + core) · 45 min"),
-    1: ("train", "Caminata/trote Z2 · 40-50 min"),
-    2: ("rest", "Descanso o movilidad"),
-    3: ("train", "Fuerza B (upper + sóleo excéntrico) · 45 min"),
-    4: ("train", "Caminata/trote Z2 · 40-50 min"),
-    5: ("train", "Rodaje largo Z2 · 50-60 min"),
-    6: ("rest", "Descanso programado"),
-}
+# La lógica vive ahora en agents.today_action_builder para que el LLM de
+# diagnóstico la consuma también. WEEKDAY_PLAN se re-exporta para no romper
+# imports existentes.
 
 
 def _build_today_action(
@@ -392,214 +387,21 @@ def _build_today_action(
     hrv_baseline: float | None,
     hrv_sd: float = 4.7,
 ) -> TodayActionOut:
-    """Combina ACWR + HRV + actividades del día + plan semanal → recomendación inequívoca.
+    """Wrapper Pydantic sobre `build_today_action` (lógica compartida).
 
-    Soporta vista de hoy / pasado / futuro:
-    - pasado → análisis retrospectivo (ejecutado / descanso programado / no realizado)
-    - futuro → planificado
-    - hoy → lógica completa con heurística de carga
+    Acepta `activities_today` como lista de `ActivityTodayOut` (lo que ya pasa
+    el endpoint) y extrae los labels para el builder agnóstico.
     """
-    weekday = target.weekday()  # 0=lun, 6=dom
-    planned_status, planned_session = WEEKDAY_PLAN[weekday]
-    today_real = DateT.today()
-    day_names = ["lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo"]
-
-    # ─── PASADO ─────────────────────────────────────────────
-    if target < today_real:
-        date_label = day_names[weekday] + " " + target.strftime("%d %b").lower()
-        if activities_today:
-            labels = ", ".join(a.label.split(" · ")[0] for a in activities_today[:3])
-            return TodayActionOut(
-                status="past_executed",
-                temporal="past",
-                headline=f"EJECUTADO ✓",
-                short_reason=f"{date_label}: {len(activities_today)} sesión{'es' if len(activities_today) > 1 else ''} registrada{'s' if len(activities_today) > 1 else ''} — {labels}.",
-                reasons=[
-                    f"Plan original del día: {planned_session}",
-                    "Ver detalle en sección de entrenos del día abajo",
-                ],
-                allowed=[],
-                next_session="",
-            )
-        if planned_status == "rest":
-            return TodayActionOut(
-                status="past_rest_planned",
-                temporal="past",
-                headline="DESCANSO PROGRAMADO ✓",
-                short_reason=f"{date_label}: día de descanso del plan semanal.",
-                reasons=["No requería actividad — recuperación parte del plan polarizado"],
-                allowed=[],
-                next_session="",
-            )
-        return TodayActionOut(
-            status="past_missed",
-            temporal="past",
-            headline="SESIÓN NO REALIZADA",
-            short_reason=f"{date_label}: planificada {planned_session.lower()} pero sin registro.",
-            reasons=[
-                f"Plan original del día: {planned_session}",
-                "Saltarse sesiones programadas afecta el ACWR y rompe el ritmo de adaptación",
-            ],
-            allowed=[],
-            next_session="",
-        )
-
-    # ─── FUTURO ─────────────────────────────────────────────
-    if target > today_real:
-        date_label = day_names[weekday] + " " + target.strftime("%d %b").lower()
-        if planned_status == "rest":
-            return TodayActionOut(
-                status="future_planned",
-                temporal="future",
-                headline="DESCANSO PLANIFICADO",
-                short_reason=f"{date_label}: día de descanso del plan semanal.",
-                reasons=["Recuperación programada — sin sesión prevista"],
-                allowed=[],
-                next_session="",
-            )
-        return TodayActionOut(
-            status="future_planned",
-            temporal="future",
-            headline=f"PLANIFICADO: {planned_session}",
-            short_reason=f"{date_label}: sesión prevista del plan polarizado.",
-            reasons=[
-                f"Plan semanal de ese día: {planned_session}",
-                "La recomendación final dependerá de HRV/ACWR esa mañana",
-            ],
-            allowed=[],
-            next_session="",
-        )
-
-    # ─── HOY (lógica original) ───────────────────────────────
-
-    # Próxima sesión (día siguiente que toque entrenar)
-    next_session = ""
-    for offset in range(1, 8):
-        d = target + timedelta(days=offset)
-        st, sess = WEEKDAY_PLAN[d.weekday()]
-        if st == "train":
-            label = "Mañana" if offset == 1 else day_names[d.weekday()].capitalize()
-            next_session = f"{label}: {sess}"
-            break
-
-    # Caso 1: ya entrenó hoy
-    if activities_today:
-        labels = ", ".join(a.label.split(" · ")[0] for a in activities_today[:3])
-        return TodayActionOut(
-            status="trained_already",
-            temporal="today",
-            headline="HOY YA ENTRENASTE",
-            short_reason=f"{len(activities_today)} sesión{'es' if len(activities_today) > 1 else ''} registrada{'s' if len(activities_today) > 1 else ''}: {labels}.",
-            reasons=[
-                f"Carga de hoy ya absorbida — no agregar más sesiones",
-                f"Si quieres complemento: movilidad, estiramientos o caminata corta (sin reloj)",
-            ],
-            allowed=[
-                "Estiramientos / foam roller (15-20 min)",
-                "Movilidad articular o yoga ligero",
-                "Caminata corta de paseo (≤30 min, conversacional)",
-            ],
-            next_session=next_session,
-        )
-
-    # Señales de alerta para forzar descanso aunque el plan diga entrenar
-    high_acwr = acwr is not None and acwr > 1.3
-    suppressed_hrv = (
-        hrv_today is not None
-        and hrv_baseline is not None
-        and hrv_today < hrv_baseline - hrv_sd
+    labels = [a.label for a in activities_today if getattr(a, "label", None)]
+    data = build_today_action(
+        target=target,
+        activity_labels=labels,
+        acwr=acwr,
+        hrv_today=hrv_today,
+        hrv_baseline=hrv_baseline,
+        hrv_sd=hrv_sd,
     )
-    reduced_hrv = (
-        hrv_today is not None
-        and hrv_baseline is not None
-        and hrv_today < hrv_baseline
-        and not suppressed_hrv
-    )
-
-    # Caso 2: HRV muy suprimido → descanso aunque toque entrenar
-    if suppressed_hrv:
-        return TodayActionOut(
-            status="rest",
-            temporal="today",
-            headline="DESCANSA HOY",
-            short_reason=f"Tu HRV ({hrv_today:.0f} ms) está suprimido vs baseline ({hrv_baseline:.0f}). Sistema nervioso pidiendo recuperación.",
-            reasons=[
-                f"HRV {hrv_today:.0f} ms = {hrv_today - hrv_baseline:+.0f} ms vs baseline (zona suprimida)",
-                "Entrenar con HRV deprimido aumenta riesgo de sobreuso y no genera adaptación",
-            ],
-            allowed=[
-                "Movilidad articular suave",
-                "Caminata de paseo conversacional (≤30 min)",
-                "Acuéstate temprano para subir HRV de mañana",
-            ],
-            next_session=next_session,
-        )
-
-    # Caso 3: ACWR alto → descanso preventivo
-    if high_acwr and planned_status == "train":
-        return TodayActionOut(
-            status="active_recovery",
-            temporal="today",
-            headline="RECUPERACIÓN ACTIVA HOY",
-            short_reason=f"Tu ACWR ({acwr:.2f}) está sobre el umbral seguro (1.3). Carga aguda muy por encima de la crónica.",
-            reasons=[
-                f"ACWR {acwr:.2f} > 1.3 — riesgo de sobreuso elevado (Gabbett 2016)",
-                f"Plan original de hoy: {planned_session}",
-                "Recuperación activa baja ACWR a zona segura para retomar mañana",
-            ],
-            allowed=[
-                "Movilidad 20-30 min",
-                "Caminata muy ligera Z1 (≤30 min, sin contar como sesión)",
-                "Estiramientos largos / foam roller",
-            ],
-            next_session=next_session,
-        )
-
-    # Caso 4: día de descanso programado
-    if planned_status == "rest":
-        extra: list[str] = []
-        if acwr and acwr > 1.0:
-            extra.append(
-                f"Tu ACWR es {acwr:.2f} — el descanso de hoy lo baja a zona óptima para mañana"
-            )
-        if reduced_hrv and hrv_today is not None and hrv_baseline is not None:
-            extra.append(
-                f"HRV {hrv_today:.0f} ms está {hrv_today - hrv_baseline:+.0f} vs baseline — descanso ayuda a normalizar"
-            )
-        if not extra:
-            extra.append("Tu plan polarizado contempla este descanso — sin descanso no hay adaptación")
-        return TodayActionOut(
-            status="rest",
-            temporal="today",
-            headline="DESCANSA HOY",
-            short_reason="Día de descanso programado por el plan semanal.",
-            reasons=extra,
-            allowed=[
-                "Movilidad / estiramientos",
-                "Caminata de paseo conversacional (sin reloj)",
-                "Foam roller, sauna, baño caliente",
-            ],
-            next_session=next_session,
-        )
-
-    # Caso 5: día normal de entrenamiento, sin alertas
-    return TodayActionOut(
-        status="train",
-        temporal="today",
-        headline=f"ENTRENA HOY: {planned_session}",
-        short_reason="Día de entrenamiento programado y sin contraindicaciones (ACWR y HRV en rango).",
-        reasons=[
-            f"Plan semanal de hoy: {planned_session}",
-            f"ACWR {acwr:.2f}" if acwr else "ACWR sin datos",
-            f"HRV {hrv_today:.0f} ms en rango" if hrv_today else "HRV de anoche sin registro",
-        ],
-        allowed=[
-            "Calentamiento progresivo 8-10 min antes",
-            "Cadencia objetivo ≥170 spm si toca trote",
-            "Hidratación + 30g de carbohidratos pre-sesión si vas a Z3+",
-        ],
-        next_session=next_session,
-    )
+    return TodayActionOut(**data)
 
 
 # ─── Nutrición e hidratación ────────────────────────────────
