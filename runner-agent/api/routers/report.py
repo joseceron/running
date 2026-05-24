@@ -829,10 +829,13 @@ def get_report(
 
     # Defensivo: si la migration de la tabla `activities` no se ha aplicado en
     # producción, no romper el endpoint — fallback al cache (cronología + latest).
+    # IMPORTANTE: hacer rollback para no dejar la transacción abortada (Postgres
+    # rechaza queries subsiguientes en una transacción en estado failed).
     try:
         db_activities = activities_repo.get_by_date(db, user_id, target)
     except Exception:
         logger.warning("Tabla activities no disponible, fallback a cache", exc_info=False)
+        db.rollback()
         db_activities = []
     activities_out: list[ActivityTodayOut] = []
     for a in db_activities:
@@ -862,6 +865,7 @@ def get_report(
             latest_run = activities_repo.get_latest(db, user_id, type_key="running", limit=1)
             biomech_db = latest_run[0] if latest_run else None
         except Exception:
+            db.rollback()
             biomech_db = None
     if biomech_db is not None:
         biomech_source = {
