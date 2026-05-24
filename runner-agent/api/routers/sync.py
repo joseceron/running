@@ -17,6 +17,7 @@ from api.deps import get_current_user_id, get_db
 from api.routers.diagnosis import _cache as _diagnosis_cache
 from data.garmin_client import GarminConnectClient
 from scripts.sync_garmin_real import (
+    _sync_activities_to_db,
     _sync_cronologia,
     _sync_hrv,
     _sync_last_activity,
@@ -34,6 +35,7 @@ class SyncResult(BaseModel):
     hrv_nights: int
     cronologia_ok: bool
     activity_ok: bool
+    activities_persisted: int = 0
     error: str | None = None
 
 
@@ -59,6 +61,7 @@ def post_sync(
     hrv_nights = 0
     cronologia_ok = False
     activity_ok = False
+    activities_persisted = 0
     error_msg: str | None = None
 
     try:
@@ -72,6 +75,12 @@ def post_sync(
     except Exception as exc:  # noqa: BLE001
         logger.exception("Sync cronología falló")
         error_msg = (error_msg or "") + f" | Cronología: {exc}"
+
+    try:
+        activities_persisted = _sync_activities_to_db(client, user_id, lookback=50)
+    except Exception as exc:  # noqa: BLE001
+        logger.exception("Persistencia de actividades falló")
+        error_msg = (error_msg or "") + f" | Actividades BD: {exc}"
 
     try:
         activity_ok = _sync_last_activity(client, user_id)
@@ -91,5 +100,6 @@ def post_sync(
         hrv_nights=hrv_nights,
         cronologia_ok=cronologia_ok,
         activity_ok=activity_ok,
+        activities_persisted=activities_persisted,
         error=error_msg,
     )

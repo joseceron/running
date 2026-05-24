@@ -150,6 +150,52 @@ class NutritionLog(Base):
     )
 
 
+class Activity(Base):
+    """Actividades sincronizadas desde Garmin — persistencia para histórico.
+
+    Antes solo había cache efímero en /tmp; sin esta tabla, navegar a fechas
+    pasadas mostraba "sesión no realizada" aunque sí hubiera entrenado, porque
+    el cache del día anterior se sobrescribía con cada sync.
+    """
+
+    __tablename__ = "activities"
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
+    user_id: Mapped[str] = mapped_column(
+        String(128), ForeignKey("users.user_id", ondelete="CASCADE"), nullable=False
+    )
+    activity_id: Mapped[str] = mapped_column(String(40), nullable=False)
+    date: Mapped[date] = mapped_column(Date, nullable=False)
+    started_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=False))
+    type_key: Mapped[str] = mapped_column(String(40), nullable=False)  # running, walking, strength_training, etc
+    name: Mapped[Optional[str]] = mapped_column(String(255))
+    distance_km: Mapped[Optional[float]] = mapped_column(Float)
+    duration_secs: Mapped[Optional[int]] = mapped_column(Integer)
+    avg_hr: Mapped[Optional[int]] = mapped_column(Integer)
+    max_hr: Mapped[Optional[int]] = mapped_column(Integer)
+    calories: Mapped[Optional[int]] = mapped_column(Integer)
+    elevation_gain_m: Mapped[Optional[float]] = mapped_column(Float)
+    aerobic_te: Mapped[Optional[float]] = mapped_column(Float)
+    anaerobic_te: Mapped[Optional[float]] = mapped_column(Float)
+    avg_cadence: Mapped[Optional[float]] = mapped_column(Float)
+    avg_stride_m: Mapped[Optional[float]] = mapped_column(Float)
+    avg_gct_ms: Mapped[Optional[int]] = mapped_column(Integer)
+    vertical_oscillation_cm: Mapped[Optional[float]] = mapped_column(Float)
+    vertical_ratio_pct: Mapped[Optional[float]] = mapped_column(Float)
+    # Distribución por zonas (Z1..Z5) como JSON serializado en texto
+    zone_distribution_json: Mapped[Optional[str]] = mapped_column(Text)
+    # Payload extendido (samples + splits) opcional, también JSON
+    extended_json: Mapped[Optional[str]] = mapped_column(Text)
+    synced_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+    __table_args__ = (
+        UniqueConstraint("user_id", "activity_id", name="uq_activity_user_id"),
+        Index("ix_activity_user_date", "user_id", "date"),
+    )
+
+
 class ScienceCache(Base):
     """Caché compartido de papers de Scopus/WoS — NO contiene user_id."""
 

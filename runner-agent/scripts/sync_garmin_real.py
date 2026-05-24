@@ -23,6 +23,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from data.garmin_client import GarminConnectClient  # noqa: E402
 from memory.database import session_scope  # noqa: E402
+from memory.repositories import activities as activities_repo  # noqa: E402
 from memory.repositories import hrv as hrv_repo  # noqa: E402
 from memory.repositories import users  # noqa: E402
 
@@ -206,8 +207,56 @@ def _sync_cronologia(client: GarminConnectClient, user_id: str) -> bool:
     return True
 
 
+def _sync_activities_to_db(client: GarminConnectClient, user_id: str, lookback: int = 50) -> int:
+    """Sincroniza últimas N actividades (de cualquier tipo) a la tabla `activities`.
+
+    Para cada actividad: trae zone distribution (1 llamada extra) y hace UPSERT.
+    Costo: ~50 calls extras, pero garantiza histórico sin depender de cache /tmp.
+    """
+    raw_client = client.get_raw_client()
+    try:
+        acts = raw_client.get_activities(0, lookback) or []
+    except Exception as exc:
+        print(f"⚠️  No pude listar actividades para persistir: {exc}")
+        return 0
+
+    if not acts:
+        return 0
+
+    saved = 0
+    with session_scope() as s:
+        users.ensure(s, user_id)
+        for act in acts:
+            try:
+                aid = str(act["activityId"])
+                # Zone distribution opcional (mejor effort)
+                try:
+                    zones = raw_client.get_activity_hr_in_timezones(aid) or []
+                    total = sum((z.get("secsInZone") or 0) for z in zones)
+                    if total > 0:
+                        zone_pct = [0.0] * 5
+                        for z in zones:
+                            zn = z.get("zoneNumber")
+                            if zn and 1 <= zn <= 5:
+                                zone_pct[zn - 1] = round(((z.get("secsInZone") or 0) / total) * 100, 1)
+                        act["zone_distribution_pct"] = zone_pct
+                except Exception:
+                    pass
+                activities_repo.upsert(s, user_id, act)
+                saved += 1
+            except Exception as exc:
+                print(f"⚠️  Actividad {act.get('activityId')} falló: {exc}")
+
+    print(f"✓ {saved} actividades persistidas en BD (últimas {lookback})")
+    return saved
+
+
 def _sync_last_activity(client: GarminConnectClient, user_id: str) -> bool:
-    """Última actividad con dynamics → cache JSON formato ActivityDetailOut."""
+    """Última actividad de RUNNING con dynamics → cache JSON formato ActivityDetailOut.
+
+    Esto es solo para la vista de detalle (samples + splits). El histórico
+    completo va a la tabla `activities` vía `_sync_activities_to_db`.
+    """
     raw_client = client.get_raw_client()
 
     try:
@@ -369,7 +418,10 @@ def main(user_id: str) -> None:
     print("\n→ Sincronizando Cronología 24h (Body Battery + Stress + Sleep)...")
     _sync_cronologia(client, user_id)
 
-    print("\n→ Sincronizando última actividad de running...")
+    print("\n→ Persistiendo últimas 50 actividades en BD (histórico)...")
+    _sync_activities_to_db(client, user_id, lookback=50)
+
+    print("\n→ Sincronizando última actividad de running (detalle con samples)...")
     _sync_last_activity(client, user_id)
 
     print(f"\n✅ Sync completado. Cache en {CACHE_DIR}/")

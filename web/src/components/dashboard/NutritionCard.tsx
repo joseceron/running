@@ -65,6 +65,27 @@ export function NutritionCard({ data }: { data: Nutrition }) {
               <Mini label="post" value={`${data.hydration.post_session_ml}ml`} />
             </div>
           )}
+          {data.hydration.real_world_examples.length > 0 && (
+            <div
+              className="mt-3 px-2 py-2 rounded text-[11px] leading-relaxed"
+              style={{ background: "rgba(25,118,210,0.06)" }}
+            >
+              <p
+                className="text-[10px] font-semibold uppercase tracking-wider mb-1"
+                style={{ color: "var(--accent-brand, #1976d2)" }}
+              >
+                Cómo se ve en la práctica
+              </p>
+              <ul className="space-y-1">
+                {data.hydration.real_world_examples.map((ex, i) => (
+                  <li key={i} className="flex gap-1.5 text-ink-secondary">
+                    <span aria-hidden>→</span>
+                    <span>{ex}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
 
         {/* MACROS */}
@@ -104,6 +125,41 @@ export function NutritionCard({ data }: { data: Nutrition }) {
               </li>
             ))}
           </ul>
+          {(data.macros.carbs_examples ||
+            data.macros.protein_examples ||
+            data.macros.fat_examples) && (
+            <div
+              className="mt-3 px-2 py-2 rounded text-[11px] leading-relaxed"
+              style={{ background: "rgba(25,118,210,0.06)" }}
+            >
+              <p
+                className="text-[10px] font-semibold uppercase tracking-wider mb-1"
+                style={{ color: "var(--accent-brand, #1976d2)" }}
+              >
+                De dónde sacarlo
+              </p>
+              <ul className="space-y-1 text-ink-secondary">
+                {data.macros.carbs_examples && (
+                  <li className="flex gap-1.5">
+                    <span aria-hidden style={{ color: "#1976d2" }}>●</span>
+                    <span>{data.macros.carbs_examples}</span>
+                  </li>
+                )}
+                {data.macros.protein_examples && (
+                  <li className="flex gap-1.5">
+                    <span aria-hidden style={{ color: "#16a34a" }}>●</span>
+                    <span>{data.macros.protein_examples}</span>
+                  </li>
+                )}
+                {data.macros.fat_examples && (
+                  <li className="flex gap-1.5">
+                    <span aria-hidden style={{ color: "#d29400" }}>●</span>
+                    <span>{data.macros.fat_examples}</span>
+                  </li>
+                )}
+              </ul>
+            </div>
+          )}
         </div>
 
         {/* AMBIENTE */}

@@ -6,9 +6,12 @@ Calcula los gates de progresión y emite recomendación + interpretación.
 
 from __future__ import annotations
 
-import json
+import json  # noqa: F401 (usado más abajo)
+import logging
 from datetime import date as DateT, timedelta
 from pathlib import Path
+
+logger = logging.getLogger(__name__)
 from statistics import mean
 from typing import Literal
 
@@ -17,6 +20,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
 from api.deps import get_current_user_id, get_db
+from memory.repositories import activities as activities_repo
 from memory.repositories import hrv as hrv_repo
 from memory.repositories import runner_profile
 
@@ -166,6 +170,8 @@ class HydrationTipOut(BaseModel):
     during_session_ml_per_hour: int
     post_session_ml: int
     notes: list[str]
+    # Ejemplos humanos (qué comer/beber, no solo "agua + electrolitos")
+    real_world_examples: list[str] = Field(default_factory=list)
 
 
 class MacroTipOut(BaseModel):
@@ -175,6 +181,10 @@ class MacroTipOut(BaseModel):
     protein_g: int
     fat_g: int
     timing_notes: list[str]
+    # Ejemplos de plato real para cada macro
+    carbs_examples: str = ""
+    protein_examples: str = ""
+    fat_examples: str = ""
 
 
 class EnvironmentTipOut(BaseModel):
@@ -644,6 +654,25 @@ def _build_nutrition(
     during_ml_h = 600 if high_intensity else 400 if duration_min > 0 else 0
     post_ml = int(extra_ml * 1.5) if extra_ml else 0
 
+    # Ejemplos humanos de hidratación + electrolitos (cómo se ve en la vida real)
+    real_examples: list[str] = [
+        f"≈ {total_ml // 250} vasos de 250 ml repartidos en el día",
+    ]
+    if electrolytes:
+        real_examples.append(
+            "Bebida de electrolitos casera: 500 ml de agua + ¼ cdita de sal marina + jugo de ½ limón + 1 cdita de miel"
+        )
+        real_examples.append(
+            "Alternativa empacada: Suero Oral, Powerade Zero, o Gatorade diluido 1:1 con agua"
+        )
+        real_examples.append(
+            "Fuentes naturales de potasio: 1 plátano (~420 mg) o 1 puñado de uvas pasas"
+        )
+    if duration_min > 0:
+        real_examples.append(
+            f"Durante una sesión de {duration_min:.0f} min: sorbos de ~150 ml cada 15 min"
+        )
+
     hydration = HydrationTipOut(
         water_ml=total_ml,
         electrolytes_needed=electrolytes,
@@ -651,6 +680,7 @@ def _build_nutrition(
         during_session_ml_per_hour=during_ml_h,
         post_session_ml=post_ml,
         notes=hydration_notes,
+        real_world_examples=real_examples,
     )
 
     # ── Macros: estimación según fase del día ────────────────
@@ -688,6 +718,24 @@ def _build_nutrition(
     protein_g = int(weight_kg * protein_per_kg)
     kcal = carbs_g * 4 + protein_g * 4 + fat_g * 9
 
+    # Ejemplos reales por macro — para que el usuario sepa de dónde sacarlo
+    carbs_examples = (
+        f"{carbs_g}g se reparten así durante el día: "
+        f"1 plato de arroz cocido (~45g), 2 rebanadas de pan integral (~30g), "
+        f"1 plátano (~27g), 1 papa mediana (~37g), 1 porción de avena cocida (~28g). "
+        "Distribuir en 3-4 comidas."
+    )
+    protein_examples = (
+        f"{protein_g}g se cubren con: 1 pechuga de pollo de 150g (~33g), "
+        f"3 huevos (~18g), 1 lata de atún (~25g), 1 vaso de leche (~8g), "
+        "100g de lentejas cocidas (~9g) o 1 yogur griego (~15g)."
+    )
+    fat_examples = (
+        f"{fat_g}g de grasa saludable: ½ aguacate (~15g), 1 cda de aceite de oliva (~14g), "
+        "1 puñado de almendras (~14g), 1 cda de mantequilla de maní (~8g). "
+        "Evitar fritos y procesados."
+    )
+
     macros = MacroTipOut(
         fase=fase,
         kcal_estimadas=kcal,
@@ -695,6 +743,9 @@ def _build_nutrition(
         protein_g=protein_g,
         fat_g=fat_g,
         timing_notes=timing,
+        carbs_examples=carbs_examples,
+        protein_examples=protein_examples,
+        fat_examples=fat_examples,
     )
 
     # ── Factor ambiental: bloqueador solar + altitud ─────────
@@ -772,40 +823,87 @@ def get_report(
 ) -> ReportOut:
     target = date or DateT.today()
 
-    # 1. Activities del día
+    # 1. Activities del día — FUENTE PRINCIPAL: tabla activities (histórico real)
     crono = _read_cronologia(user_id, target) or {}
-    activities = crono.get("activities") or []
     summary = crono.get("summary") or {}
-    activities_out = [
-        ActivityTodayOut(
-            hour=a.get("hour") or 0,
-            label=a.get("label") or "",
-            type=a.get("type") or "run",
-        )
-        for a in activities
-    ]
 
-    # 2. Biomecánica (de la última actividad cacheada)
+    # Defensivo: si la migration de la tabla `activities` no se ha aplicado en
+    # producción, no romper el endpoint — fallback al cache (cronología + latest).
+    try:
+        db_activities = activities_repo.get_by_date(db, user_id, target)
+    except Exception:
+        logger.warning("Tabla activities no disponible, fallback a cache", exc_info=False)
+        db_activities = []
+    activities_out: list[ActivityTodayOut] = []
+    for a in db_activities:
+        hour_f = 0.0
+        if a.started_at:
+            hour_f = a.started_at.hour + a.started_at.minute / 60 + a.started_at.second / 3600
+        label = a.name or "Actividad"
+        if a.distance_km:
+            label = f"{label} · {a.distance_km:.2f} km"
+        activities_out.append(
+            ActivityTodayOut(
+                hour=round(hour_f, 3),
+                label=label,
+                type=a.type_key,
+            )
+        )
+
+    # 2. Biomecánica — preferir actividad de running del día consultado,
+    # fallback a la última de running guardada en BD, fallback final al cache.
+    biomech_source: dict | None = None
+    biomech_db = next(
+        (a for a in db_activities if "running" in (a.type_key or "").lower()),
+        None,
+    )
+    if biomech_db is None:
+        try:
+            latest_run = activities_repo.get_latest(db, user_id, type_key="running", limit=1)
+            biomech_db = latest_run[0] if latest_run else None
+        except Exception:
+            biomech_db = None
+    if biomech_db is not None:
+        biomech_source = {
+            "name": biomech_db.name,
+            "calories": biomech_db.calories,
+            "distance_km": biomech_db.distance_km,
+            "duration_secs": biomech_db.duration_secs,
+            "avg_cadence": biomech_db.avg_cadence,
+            "avg_stride_m": biomech_db.avg_stride_m,
+            "avg_gct_ms": biomech_db.avg_gct_ms,
+        }
+        if biomech_db.zone_distribution_json:
+            try:
+                biomech_source["zone_distribution_pct"] = json.loads(
+                    biomech_db.zone_distribution_json
+                )
+            except Exception:
+                pass
+
+    # Cache de samples para cardiac drift (sigue del JSON — datos high-res)
     latest = _read_latest_activity(user_id) or {}
-    biomech: BiomechanicsOut | None = None
-    if latest:
-        is_walk = _is_walk(latest.get("distance_km", 0), latest.get("duration_secs", 0))
-        biomech = BiomechanicsOut(
-            cadence_spm=latest.get("avg_cadence") or None,
-            stride_m=latest.get("avg_stride_m") or None,
-            gct_ms=latest.get("avg_gct_ms") or None,
-            is_walk=is_walk,
-        )
 
-    # Fallback: si cronología no trajo actividades pero la última actividad
-    # cacheada es del día solicitado, agregarla. Cubre el caso de Garmin
-    # devolviendo BB/stress vacíos pero sí tener la actividad.
+    # Fallback A: si BD no trajo nada pero la cronología cache tiene activities,
+    # úsala (compat hacia atrás antes de que la migration se aplique).
+    if not activities_out:
+        crono_acts = crono.get("activities") or []
+        for a in crono_acts:
+            activities_out.append(
+                ActivityTodayOut(
+                    hour=a.get("hour") or 0,
+                    label=a.get("label") or "",
+                    type=a.get("type") or "run",
+                )
+            )
+
+    # Fallback B: si todavía no hay nada y el cache de última actividad coincide
+    # con la fecha solicitada, agrégalo.
     if not activities_out and latest:
         started = latest.get("started_at") or ""
         if started.startswith(target.isoformat()):
             try:
-                hour_part = started[11:19]  # HH:MM:SS
-                h, m, s = (int(x) for x in hour_part.split(":"))
+                h, m, s = (int(x) for x in started[11:19].split(":"))
                 hour_f = h + m / 60 + s / 3600
             except Exception:
                 hour_f = 0
@@ -819,6 +917,33 @@ def get_report(
                     type=latest.get("type") or "run",
                 )
             )
+
+    # Fallback final para biomech_source: si BD vacía pero hay cache latest,
+    # úsalo para fat_burn/polarization
+    if biomech_source is None and latest:
+        biomech_source = {
+            "name": latest.get("name"),
+            "calories": latest.get("calories"),
+            "distance_km": latest.get("distance_km"),
+            "duration_secs": latest.get("duration_secs"),
+            "avg_cadence": latest.get("avg_cadence"),
+            "avg_stride_m": latest.get("avg_stride_m"),
+            "avg_gct_ms": latest.get("avg_gct_ms"),
+            "zone_distribution_pct": latest.get("zone_distribution_pct"),
+        }
+
+    biomech: BiomechanicsOut | None = None
+    if biomech_source:
+        is_walk = _is_walk(
+            biomech_source.get("distance_km") or 0,
+            biomech_source.get("duration_secs") or 0,
+        )
+        biomech = BiomechanicsOut(
+            cadence_spm=int(biomech_source["avg_cadence"]) if biomech_source.get("avg_cadence") else None,
+            stride_m=biomech_source.get("avg_stride_m"),
+            gct_ms=biomech_source.get("avg_gct_ms"),
+            is_walk=is_walk,
+        )
 
     # 3. Heart
     profile = runner_profile.get(db, user_id)
@@ -994,13 +1119,15 @@ def get_report(
     # 7. (Recomendación textual eliminada — la fuente única ahora es today_action más abajo)
 
     # 9. Insights científicos (diferencial Liebre)
+    # FatBurn/polarization usan datos de BD (biomech_source). Cardiac drift necesita
+    # samples high-res, que solo vienen del cache JSON.
     insights: InsightsOut | None = None
-    if latest:
+    if biomech_source or latest:
         insights = InsightsOut(
-            fat_burn=_calc_fat_burn(latest),
-            cardiac_drift=_calc_cardiac_drift(latest),
+            fat_burn=_calc_fat_burn(biomech_source) if biomech_source else None,
+            cardiac_drift=_calc_cardiac_drift(latest) if latest else None,
             heart_progress=_build_heart_progress(rhr_today, rhr_base),
-            polarization=_build_polarization(latest),
+            polarization=_build_polarization(biomech_source) if biomech_source else None,
         )
 
     # 10. Today action — recomendación inequívoca (contextual a la fecha)
@@ -1018,7 +1145,7 @@ def get_report(
     nutrition = _build_nutrition(
         weight_kg=weight,
         activities_today=activities_out,
-        latest_activity=latest if (activities_out and latest) else None,
+        latest_activity=biomech_source if (activities_out and biomech_source) else None,
         altitude_msnm=1736,  # Popayán; en futuro: leer de perfil
         is_today=is_today,
     )

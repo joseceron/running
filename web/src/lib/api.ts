@@ -253,6 +253,7 @@ export type Nutrition = {
     during_session_ml_per_hour: number;
     post_session_ml: number;
     notes: string[];
+    real_world_examples: string[];
   };
   macros: {
     fase: string;
@@ -261,6 +262,9 @@ export type Nutrition = {
     protein_g: number;
     fat_g: number;
     timing_notes: string[];
+    carbs_examples: string;
+    protein_examples: string;
+    fat_examples: string;
   };
   environment: {
     altitude_msnm: number;
