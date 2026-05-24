@@ -5,12 +5,25 @@
 
 import { SyncButton } from "./SyncButton";
 
+const TZ = "America/Bogota";
+
+function colombiaHour(): number {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: TZ,
+    hour: "numeric",
+    hour12: false,
+  }).formatToParts(new Date());
+  const h = parts.find((p) => p.type === "hour")?.value ?? "0";
+  return Number(h);
+}
+
 export function TopBar({ userName, title }: { userName: string; title: string }) {
   const firstName = userName.split(" ")[0];
-  const hour = new Date().getHours();
+  const hour = colombiaHour();
   const greeting =
     hour < 12 ? "Buenos días" : hour < 19 ? "Buenas tardes" : "Buenas noches";
   const today = new Date().toLocaleDateString("es-CO", {
+    timeZone: TZ,
     weekday: "long",
     day: "numeric",
     month: "long",

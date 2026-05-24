@@ -1,8 +1,20 @@
 import Link from "next/link";
 
+const TZ = "America/Bogota";
+
+function colombiaHour(): number {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: TZ,
+    hour: "numeric",
+    hour12: false,
+  }).formatToParts(new Date());
+  const h = parts.find((p) => p.type === "hour")?.value ?? "0";
+  return Number(h);
+}
+
 export function DashboardHeader({ name }: { name: string }) {
   const firstName = name.split(" ")[0];
-  const hour = new Date().getHours();
+  const hour = colombiaHour();
   const greeting = hour < 12 ? "Buenos días" : hour < 19 ? "Buenas tardes" : "Buenas noches";
   return (
     <header className="px-8 py-6 border-b border-rule/60 flex items-center justify-between">
