@@ -54,12 +54,11 @@ def get_current_user_id(
     token = authorization.removeprefix("Bearer ").strip()
 
     # Lazy import para que dev no necesite firebase-admin cargado en cold start
+    import firebase_admin
     from firebase_admin import auth as firebase_auth
-    from firebase_admin import initialize_app
-    from firebase_admin._apps import _apps  # type: ignore[attr-defined]
 
-    if not _apps:
-        initialize_app()
+    if not firebase_admin._apps:
+        firebase_admin.initialize_app()
     try:
         decoded = firebase_auth.verify_id_token(token)
         return decoded["uid"]
