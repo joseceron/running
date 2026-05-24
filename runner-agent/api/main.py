@@ -23,6 +23,7 @@ from api.routers import (
     health,
     report,
     sync,
+    users,
 )
 from api.settings import settings
 
@@ -47,6 +48,7 @@ app.add_middleware(
 )
 
 app.include_router(health.router)
+app.include_router(users.router, prefix=settings.api_v1_prefix)
 app.include_router(dashboard.router, prefix=settings.api_v1_prefix)
 app.include_router(diagnosis.router, prefix=settings.api_v1_prefix)
 app.include_router(cronologia.router, prefix=settings.api_v1_prefix)

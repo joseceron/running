@@ -19,17 +19,39 @@ from datetime import date as DateT, timedelta
 from typing import TypedDict
 
 
-# Plan semanal modelo (en fase de reconstrucción de base aeróbica).
-# 0 = lunes, 6 = domingo.
-WEEKDAY_PLAN: dict[int, tuple[str, str]] = {
-    0: ("train", "Fuerza A (piernas + core) · 45 min"),
-    1: ("train", "Caminata/trote Z2 · 40-50 min"),
+# Plan semanal genérico (polarizado 80/20 aeróbico, neutro a cualquier corredor).
+# 0 = lunes, 6 = domingo. Cada user puede sobreescribir esto desde
+# runner_profile.weekly_plan (JSONB) y se inyecta via param `weekday_plan`
+# en build_today_action().
+DEFAULT_WEEKDAY_PLAN: dict[int, tuple[str, str]] = {
+    0: ("train", "Fuerza · 45 min"),
+    1: ("train", "Trote suave Z2 · 40-50 min"),
     2: ("rest", "Descanso o movilidad"),
-    3: ("train", "Fuerza B (upper + sóleo excéntrico) · 45 min"),
-    4: ("train", "Caminata/trote Z2 · 40-50 min"),
-    5: ("train", "Rodaje largo Z2 · 50-60 min"),
+    3: ("train", "Fuerza · 45 min"),
+    4: ("train", "Trote suave Z2 · 40-50 min"),
+    5: ("train", "Rodaje largo Z2 · 60-80 min"),
     6: ("rest", "Descanso programado"),
 }
+
+# Alias retro-compatible — los tests existentes y código viejo importan este
+# nombre. Apunta al default genérico, no al plan de José.
+WEEKDAY_PLAN = DEFAULT_WEEKDAY_PLAN
+
+
+def _coerce_plan(plan: dict | None) -> dict[int, tuple[str, str]]:
+    """Acepta dict[int, (status, label)] o dict[str, [status, label]] (JSONB)
+    y normaliza a la forma int → tuple. Si llega None, devuelve el default."""
+    if not plan:
+        return DEFAULT_WEEKDAY_PLAN
+    normalized: dict[int, tuple[str, str]] = {}
+    for k, v in plan.items():
+        idx = int(k) if isinstance(k, str) else k
+        if isinstance(v, (list, tuple)) and len(v) >= 2:
+            normalized[idx] = (str(v[0]), str(v[1]))
+    # Si vino incompleto, rellenar con el default
+    for idx, default_v in DEFAULT_WEEKDAY_PLAN.items():
+        normalized.setdefault(idx, default_v)
+    return normalized
 
 
 _DAY_NAMES = [
@@ -54,15 +76,20 @@ def build_today_action(
     hrv_today: float | None,
     hrv_baseline: float | None,
     hrv_sd: float = 4.7,
+    weekday_plan: dict | None = None,
 ) -> TodayActionData:
     """Devuelve la decisión inequívoca para `target`.
 
     `activity_labels` es la lista de labels (strings) de las actividades
     ejecutadas en `target`. Aceptamos strings — no objetos — para no acoplar
     este módulo a `ActivityTodayOut` ni a otros DTOs.
+
+    `weekday_plan` permite override per-user (vino de runner_profile.weekly_plan
+    JSONB). Si None, se usa DEFAULT_WEEKDAY_PLAN.
     """
+    plan = _coerce_plan(weekday_plan)
     weekday = target.weekday()
-    planned_status, planned_session = WEEKDAY_PLAN[weekday]
+    planned_status, planned_session = plan[weekday]
     today_real = DateT.today()
 
     # ─── PASADO ─────────────────────────────────────────────
@@ -144,11 +171,12 @@ def build_today_action(
 
     # ─── HOY ────────────────────────────────────────────────
 
-    # Próxima sesión (día siguiente que toque entrenar)
+    # Próxima sesión (día siguiente que toque entrenar) — usa el mismo plan
+    # que ya resolvimos arriba, no el global, para respetar overrides per-user.
     next_session = ""
     for offset in range(1, 8):
         d = target + timedelta(days=offset)
-        st, sess = WEEKDAY_PLAN[d.weekday()]
+        st, sess = plan[d.weekday()]
         if st == "train":
             label = "Mañana" if offset == 1 else _DAY_NAMES[d.weekday()].capitalize()
             next_session = f"{label}: {sess}"

@@ -411,7 +411,7 @@ def _build_nutrition(
     weight_kg: float,
     activities_today: list,
     latest_activity: dict | None,
-    altitude_msnm: int = 1736,
+    altitude_msnm: int = 0,
     is_today: bool = True,
 ) -> NutritionOut:
     """Cálculos automáticos basados en peso, actividad y clima.
@@ -936,23 +936,33 @@ def get_report(
             polarization=_build_polarization(biomech_source) if biomech_source else None,
         )
 
-    # 10. Today action — recomendación inequívoca (contextual a la fecha)
+    # 10. Today action — recomendación inequívoca (contextual a la fecha).
+    # weekly_plan viene de runner_profile.weekly_plan JSONB (override per-user);
+    # si None, build_today_action cae al DEFAULT_WEEKDAY_PLAN genérico.
     today_action = _build_today_action(
         target=target,
         activities_today=activities_out,
         acwr=acwr_val,
         hrv_today=hrv_today,
         hrv_baseline=baseline,
+        weekday_plan=getattr(profile, "weekly_plan", None) if profile else None,
     )
 
     # 11. Nutrición e hidratación (factor ambiental + diferencial)
     is_today = target == DateT.today()
     weight = float(profile.weight_kg) if profile and profile.weight_kg else 68.0
+    # Multi-tenant: altitude por usuario desde el perfil (antes 1736 hardcoded a
+    # Popayán). Si el usuario no la registró, 0 = nivel del mar (default safe).
+    altitude = (
+        int(profile.altitude_msnm)
+        if profile and getattr(profile, "altitude_msnm", None)
+        else 0
+    )
     nutrition = _build_nutrition(
         weight_kg=weight,
         activities_today=activities_out,
         latest_activity=biomech_source if (activities_out and biomech_source) else None,
-        altitude_msnm=1736,  # Popayán; en futuro: leer de perfil
+        altitude_msnm=altitude,
         is_today=is_today,
     )
 

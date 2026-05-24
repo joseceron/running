@@ -7,21 +7,37 @@
 
 "use client";
 
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, type ReactNode } from "react";
 import { useAuth } from "@/lib/auth-context";
+import { liebreAuthed } from "@/lib/api";
 
 export function AuthGuard({ children }: { children: ReactNode }) {
   const router = useRouter();
-  const { user, loading, isConfigured } = useAuth();
+  const pathname = usePathname();
+  const { user, loading, isConfigured, idToken } = useAuth();
 
   useEffect(() => {
     // Si Firebase no está configurado (modo demo dev), no bloqueamos
     if (!isConfigured) return;
-    if (!loading && !user) {
+    if (loading) return;
+    if (!user) {
       router.replace("/login");
+      return;
     }
-  }, [isConfigured, loading, user, router]);
+    // Hay user logueado: si NO tiene perfil y no estamos ya en onboarding,
+    // redirigir. Esto cubre el caso de un user que cierra y vuelve a abrir
+    // sin haber completado el wizard.
+    if (pathname?.startsWith("/onboarding")) return;
+    liebreAuthed
+      .getProfileOrNull(idToken)
+      .then((profile) => {
+        if (!profile) router.replace("/onboarding");
+      })
+      .catch(() => {
+        /* backend caído: dejamos seguir, dashboard mostrará su propio error */
+      });
+  }, [isConfigured, loading, user, idToken, pathname, router]);
 
   // En modo demo dev, mostrar contenido siempre
   if (!isConfigured) return <>{children}</>;

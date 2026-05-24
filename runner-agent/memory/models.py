@@ -17,11 +17,13 @@ from sqlalchemy import (
     ForeignKey,
     Index,
     Integer,
+    LargeBinary,
     String,
     Text,
     UniqueConstraint,
     func,
 )
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
@@ -73,11 +75,49 @@ class RunnerProfile(Base):
     goal_event: Mapped[Optional[str]] = mapped_column(String(40))
     goal_date: Mapped[Optional[date]] = mapped_column(Date)
     goal_time_secs: Mapped[Optional[int]] = mapped_column(Integer)
+    # Multi-tenant: ciudad/altitud por usuario (antes 1736 hardcoded a Popayán)
+    city: Mapped[Optional[str]] = mapped_column(String(120))
+    altitude_msnm: Mapped[Optional[int]] = mapped_column(Integer)
+    # Lista de lesiones históricas: [{name, recovered_at, severity, notes}]
+    injury_history: Mapped[Optional[list]] = mapped_column(JSONB)
+    # Override del plan semanal default. Formato dict[str, [status, label]] con
+    # keys "0".."6" (lun..dom). Si NULL, build_today_action usa DEFAULT_WEEKDAY_PLAN.
+    weekly_plan: Mapped[Optional[dict]] = mapped_column(JSONB)
     system_start: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
 
     user: Mapped[User] = relationship(back_populates="profile")
+
+
+class GarminCredentials(Base):
+    """Credenciales Garmin Connect cifradas por usuario.
+
+    Password se cifra con security.crypto.encrypt() antes de persistir. NUNCA
+    se loguea ni se devuelve por API. La columna `last_error` guarda el último
+    fallo de login (para mostrarle al usuario que debe re-conectar).
+    """
+
+    __tablename__ = "garmin_credentials"
+
+    user_id: Mapped[str] = mapped_column(
+        String(128),
+        ForeignKey("users.user_id", ondelete="CASCADE"),
+        primary_key=True,
+    )
+    email: Mapped[str] = mapped_column(String(255), nullable=False)
+    password_encrypted: Mapped[bytes] = mapped_column(LargeBinary, nullable=False)
+    last_login_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True))
+    last_error: Mapped[Optional[str]] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=False,
+    )
 
 
 class BodyWeightHistory(Base):

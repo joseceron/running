@@ -1,4 +1,11 @@
-"""Cliente Garmin Connect usando python-garminconnect."""
+"""Cliente Garmin Connect usando python-garminconnect.
+
+Multi-tenant: cada instancia se construye con las credenciales del usuario
+(o, en último recurso, las del `.env` legacy). El `token_dir` también se
+aísla por hash del email para evitar que dos usuarios compartan tokens en
+el filesystem (lo cual romper el login del segundo en Cloud Run).
+"""
+import hashlib
 import os
 from datetime import date, timedelta
 from pathlib import Path
@@ -6,27 +13,85 @@ from typing import Optional
 
 from dotenv import load_dotenv
 from garminconnect import Garmin
+from sqlalchemy.orm import Session
 
 load_dotenv()
 
-# garth guarda tokens en este directorio para evitar re-autenticarse cada vez
-TOKENSTORE = str(Path(__file__).parent.parent / ".garmin_tokens")
+# Directorio raíz para tokens. En Cloud Run solo /tmp es escribible.
+_DEFAULT_TOKEN_ROOT = (
+    Path("/tmp/garmin_tokens")
+    if Path("/tmp").is_dir() and os.environ.get("K_SERVICE")  # Cloud Run env var
+    else Path(__file__).parent.parent / ".garmin_tokens"
+)
+
+
+def _token_dir_for(email: str, root: Path | None = None) -> Path:
+    """Subdirectorio único por usuario (hash del email truncado).
+
+    No usamos el user_id porque el token store está conceptualmente atado a
+    la cuenta Garmin, no al user_id de Liebre. Si dos users de Liebre por
+    error apuntan a la misma cuenta Garmin (no debería pasar, pero...),
+    comparten tokens — lo cual está bien.
+    """
+    h = hashlib.sha256(email.lower().encode("utf-8")).hexdigest()[:16]
+    return (root or _DEFAULT_TOKEN_ROOT) / h
 
 
 class GarminConnectClient:
-    def __init__(self):
-        email = os.environ.get("GARMIN_EMAIL")
-        password = os.environ.get("GARMIN_PASSWORD")
-        if not email or not password:
-            raise ValueError(
-                "GARMIN_EMAIL y GARMIN_PASSWORD deben estar definidos en .env"
-            )
+    """Wrapper sobre python-garminconnect.
+
+    Construcción:
+    - Default (legacy CLI): `GarminConnectClient()` lee del `.env`.
+    - Per-user: `GarminConnectClient(email, password)` con credenciales explícitas.
+    - Desde BD: `GarminConnectClient.for_user(session, user_id)` lee de
+      `garmin_credentials` (cifrado) y construye la instancia.
+    """
+
+    def __init__(
+        self,
+        email: str | None = None,
+        password: str | None = None,
+        token_dir: Path | str | None = None,
+    ):
+        if email is None or password is None:
+            env_email = os.environ.get("GARMIN_EMAIL")
+            env_password = os.environ.get("GARMIN_PASSWORD")
+            if not env_email or not env_password:
+                raise ValueError(
+                    "Sin credenciales: pasa email+password o define "
+                    "GARMIN_EMAIL/GARMIN_PASSWORD en el entorno"
+                )
+            email = email or env_email
+            password = password or env_password
+        self._email = email
+        self._token_dir = Path(token_dir) if token_dir else _token_dir_for(email)
         self._client = Garmin(email, password)
         self._login()
 
+    @classmethod
+    def for_user(cls, session: Session, user_id: str) -> "GarminConnectClient":
+        """Construye el cliente leyendo credenciales cifradas de la BD."""
+        # Import local para evitar ciclo (repos importan models que importan...)
+        from memory.repositories import garmin_credentials as creds_repo
+
+        decrypted = creds_repo.get_decrypted(session, user_id)
+        if decrypted is None:
+            raise LookupError(
+                f"user_id={user_id!r} no tiene credenciales Garmin guardadas. "
+                "Pídele que las configure en /dashboard/settings."
+            )
+        email, password = decrypted
+        try:
+            instance = cls(email=email, password=password)
+        except Exception as exc:
+            creds_repo.mark_login_failed(session, user_id, str(exc))
+            raise
+        creds_repo.mark_login_ok(session, user_id)
+        return instance
+
     def _login(self):
-        Path(TOKENSTORE).mkdir(exist_ok=True)
-        self._client.login(TOKENSTORE)
+        self._token_dir.mkdir(parents=True, exist_ok=True)
+        self._client.login(str(self._token_dir))
 
     def get_raw_client(self):
         """Expone el cliente Garmin subyacente para operaciones de bulk."""

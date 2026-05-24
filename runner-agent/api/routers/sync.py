@@ -46,11 +46,17 @@ class SyncResult(BaseModel):
 )
 def post_sync(
     user_id: str = Depends(get_current_user_id),
-    _db: Session = Depends(get_db),
+    db: Session = Depends(get_db),
 ) -> SyncResult:
     started = datetime.now(tz=timezone.utc)
     try:
-        client = GarminConnectClient()
+        # Multi-tenant: cada user usa SUS credenciales Garmin cifradas en BD.
+        # Fallback al .env solo si no hay credenciales en BD (modo legacy /
+        # primer despliegue antes de que el user complete el onboarding).
+        try:
+            client = GarminConnectClient.for_user(db, user_id)
+        except LookupError:
+            client = GarminConnectClient()
     except Exception as exc:  # noqa: BLE001
         logger.exception("Garmin login falló")
         raise HTTPException(

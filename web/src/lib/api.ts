@@ -8,6 +8,18 @@
 const API_BASE =
   process.env.NEXT_PUBLIC_LIEBRE_API ?? "http://localhost:8080";
 
+export type InjuryRecord = {
+  name: string;
+  recovered_at?: string;
+  severity?: "mild" | "moderate" | "severe";
+  notes?: string;
+};
+
+export type WeeklyPlanOverride = {
+  /** Cada key es '0'..'6' (lun..dom). Value es [status, label]. */
+  [day: string]: [string, string];
+};
+
 export type Profile = {
   user_id: string;
   name: string;
@@ -19,6 +31,10 @@ export type Profile = {
   goal_event: "5K" | "10K" | "21K" | "42K" | "aprendiendo" | null;
   goal_date: string | null;
   goal_time_secs: number | null;
+  city: string | null;
+  altitude_msnm: number | null;
+  injury_history: InjuryRecord[] | null;
+  weekly_plan: WeeklyPlanOverride | null;
   system_start: string;
 };
 
@@ -331,6 +347,115 @@ export const liebreApi = {
     fetchJson<ActivityDetail>(`/v1/users/me/activities/${id}`),
   report: (date?: string) =>
     fetchJson<Report>(withDate("/v1/users/me/report", date)),
+};
+
+/* ─── Auth-aware helpers para llamadas desde componentes cliente ───────
+   El SSR usa fetchJson sin token (cae al DEMO_FALLBACK_USER_ID por ahora).
+   Los flujos interactivos (onboarding, settings) deben usar estos helpers
+   con el idToken del AuthContext para que el backend identifique al user
+   correcto via Firebase.
+*/
+
+export type InitPayload = {
+  name: string;
+  age?: number;
+  weight_kg?: number;
+  height_cm?: number;
+  city?: string;
+  altitude_msnm?: number;
+  goal_event?: "5K" | "10K" | "21K" | "42K" | "aprendiendo";
+  goal_date?: string; // YYYY-MM-DD
+  goal_time_secs?: number;
+  injury_history?: InjuryRecord[];
+  garmin_email?: string;
+  garmin_password?: string;
+};
+
+export type ProfilePatchPayload = Partial<{
+  name: string;
+  age: number;
+  weight_kg: number;
+  height_cm: number;
+  max_hr: number;
+  resting_hr: number;
+  city: string;
+  altitude_msnm: number;
+  goal_event: "5K" | "10K" | "21K" | "42K" | "aprendiendo";
+  goal_date: string;
+  goal_time_secs: number;
+  injury_history: InjuryRecord[];
+  weekly_plan: WeeklyPlanOverride;
+}>;
+
+async function _authedFetch<T>(
+  path: string,
+  init: RequestInit,
+  idToken: string | null,
+): Promise<T> {
+  const res = await fetch(`${API_BASE}${path}`, {
+    ...init,
+    headers: {
+      "Content-Type": "application/json",
+      ...(idToken ? { Authorization: `Bearer ${idToken}` } : {}),
+      ...(init.headers || {}),
+    },
+    cache: "no-store",
+  });
+  if (res.status === 204) return undefined as T;
+  if (!res.ok) {
+    let detail = `${res.status} ${res.statusText}`;
+    try {
+      const body = await res.json();
+      if (body?.detail) detail = body.detail;
+    } catch {
+      /* ignore */
+    }
+    throw new Error(`Liebre API ${path} → ${detail}`);
+  }
+  return (await res.json()) as T;
+}
+
+export const liebreAuthed = {
+  initUser: (body: InitPayload, idToken: string | null) =>
+    _authedFetch<Profile>(
+      "/v1/users/me/init",
+      { method: "POST", body: JSON.stringify(body) },
+      idToken,
+    ),
+  patchProfile: (body: ProfilePatchPayload, idToken: string | null) =>
+    _authedFetch<Profile>(
+      "/v1/users/me/profile",
+      { method: "PATCH", body: JSON.stringify(body) },
+      idToken,
+    ),
+  putGarmin: (
+    body: { email: string; password: string },
+    idToken: string | null,
+  ) =>
+    _authedFetch<void>(
+      "/v1/users/me/garmin",
+      { method: "PUT", body: JSON.stringify(body) },
+      idToken,
+    ),
+  deleteMe: (idToken: string | null) =>
+    _authedFetch<void>(
+      "/v1/users/me",
+      { method: "DELETE", body: JSON.stringify({ confirm: "DELETE" }) },
+      idToken,
+    ),
+  // Detecta si el usuario YA tiene perfil completado (200) o necesita onboarding (404).
+  // Devuelve null si 404, lanza si otro error.
+  getProfileOrNull: async (idToken: string | null): Promise<Profile | null> => {
+    const res = await fetch(`${API_BASE}/v1/users/me/profile`, {
+      headers: idToken ? { Authorization: `Bearer ${idToken}` } : {},
+      cache: "no-store",
+    });
+    if (res.status === 404) return null;
+    if (!res.ok) {
+      throw new Error(`profile fetch → ${res.status}`);
+    }
+    return (await res.json()) as Profile;
+  },
 };
 
 export function formatGoalTime(secs: number | null): string {

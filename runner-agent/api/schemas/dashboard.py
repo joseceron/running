@@ -23,6 +23,18 @@ class ProfileOut(BaseModel):
     )
     goal_date: DateT | None = Field(None, example="2026-10-01")
     goal_time_secs: int | None = Field(None, example=6600)
+    # Multi-tenant: datos per-user que antes eran hardcoded
+    city: str | None = Field(None, example="Popayán")
+    altitude_msnm: int | None = Field(None, example=1736)
+    injury_history: list[dict] | None = Field(
+        None,
+        description="Lista de {name, recovered_at, severity, notes}",
+        example=[{"name": "Desgarro sóleo", "recovered_at": "2021-01-01", "severity": "moderate"}],
+    )
+    weekly_plan: dict | None = Field(
+        None,
+        description="Override del plan semanal. dict[str, [status, label]] con keys '0'..'6' (lun..dom)",
+    )
     system_start: datetime
 
 

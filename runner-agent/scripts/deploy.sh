@@ -91,10 +91,14 @@ fi
 # ── 5. Deploy del servicio ──────────────────────────────────────────────
 echo ""
 echo "→ [5/6] Deploy a Cloud Run"
+# --update-secrets garantiza que la env var LIEBRE_FERNET_KEY (cifrado de
+# credenciales Garmin per-user) esté siempre disponible para el contenedor.
+# Es aditivo — no sobreescribe otros secrets ya configurados.
 gcloud run deploy "$SERVICE" \
   --image "$IMAGE" \
   --region "$REGION" \
   --project "$PROJECT" \
+  --update-secrets=LIEBRE_FERNET_KEY=liebre-fernet-key:latest \
   --quiet
 
 # ── 6. Smoke test ───────────────────────────────────────────────────────

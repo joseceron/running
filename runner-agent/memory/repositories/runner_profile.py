@@ -23,11 +23,16 @@ def upsert(
     goal_event: str | None = None,
     goal_date: DateT | None = None,
     goal_time_secs: int | None = None,
+    city: str | None = None,
+    altitude_msnm: int | None = None,
+    injury_history: list[dict] | None = None,
+    weekly_plan: dict | None = None,
 ) -> RunnerProfile:
     """Crea o actualiza el perfil del usuario.
 
     Nunca borra registros de otros usuarios — el `user_id` está hardcoded
-    por la clave primaria.
+    por la clave primaria. Solo actualiza los campos cuyo valor no es None,
+    es decir: PATCH-like (los kwargs ausentes preservan el valor previo).
     """
     profile = session.get(RunnerProfile, user_id)
     if profile is None:
@@ -50,6 +55,14 @@ def upsert(
         profile.goal_date = goal_date
     if goal_time_secs is not None:
         profile.goal_time_secs = goal_time_secs
+    if city is not None:
+        profile.city = city
+    if altitude_msnm is not None:
+        profile.altitude_msnm = altitude_msnm
+    if injury_history is not None:
+        profile.injury_history = injury_history
+    if weekly_plan is not None:
+        profile.weekly_plan = weekly_plan
     session.flush()
     return profile
 
@@ -73,6 +86,10 @@ def get_as_dict(session: Session, user_id: str) -> dict[str, Any] | None:
         "goal_event": p.goal_event,
         "goal_date": p.goal_date.isoformat() if p.goal_date else None,
         "goal_time_secs": p.goal_time_secs,
+        "city": p.city,
+        "altitude_msnm": p.altitude_msnm,
+        "injury_history": p.injury_history,
+        "weekly_plan": p.weekly_plan,
         "system_start": p.system_start.isoformat(),
     }
 
