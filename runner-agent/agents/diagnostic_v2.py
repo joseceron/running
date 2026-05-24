@@ -12,6 +12,7 @@ import logging
 import os
 from dataclasses import dataclass
 from datetime import date
+from pathlib import Path
 
 from anthropic import Anthropic
 from dotenv import load_dotenv
@@ -19,6 +20,25 @@ from sqlalchemy.orm import Session
 
 from memory.repositories import hrv as hrv_repo
 from memory.repositories import runner_profile, weekly as weekly_repo
+
+CACHE_DIR = Path("/tmp/liebre_cache")
+
+
+def _load_today_activities(user_id: str, today: date) -> list[dict]:
+    """Lee el cache de cronología de hoy y extrae las actividades ejecutadas.
+
+    Las actividades vienen del sync (sync_garmin_real._sync_cronologia) ya
+    formateadas en `{"hour": ..., "label": "...", "type": "..."}`.
+    Si no hay cache fresco, retorna lista vacía.
+    """
+    path = CACHE_DIR / f"cronologia_{user_id}_{today.isoformat()}.json"
+    if not path.exists():
+        return []
+    try:
+        data = json.loads(path.read_text())
+        return data.get("activities") or []
+    except Exception:
+        return []
 
 load_dotenv()
 
@@ -49,11 +69,17 @@ PRINCIPIOS NO NEGOCIABLES:
 CONTEXTO PERMANENTE DEL CORREDOR (no varía entre sesiones):
 - Entrena a 1,736 msnm (altitud) — esto le da ventaja de adaptación EPO en \
   competencias a menor altitud.
-- Historial: desgarro del 49% del sóleo (2024-01-15) — el protocolo de prevención \
-  con excéntrico de sóleo NO se debe omitir.
+- Antecedente histórico: desgarro del 49% del sóleo en 2021, RECUPERADO — 5 años \
+  sin dolor ni recaídas. NO es restricción activa para el plan. El excéntrico de \
+  sóleo es buena práctica preventiva pero NO una obligación clínica. No frenes \
+  la progresión por miedo a esta lesión vieja.
 - Meta sub-1:50 en media maratón el 2026-10-01 — requiere VO2max ~52-53; actual ~46.
 - Patrón histórico: tiende a entrenar en Z4-Z5 cuando debería estar en Z2 \
   polarizado 80/20 (Seiler 2010).
+- IMPORTANTE: revisa siempre el campo `activities_today` del payload antes de \
+  recomendar un entreno. Si ya ejecutó sesiones hoy, la "acción recomendada" debe \
+  enfocarse en recuperación, complemento o sesión de mañana — NO mandes a entrenar \
+  algo que ya hizo.
 
 FORMATO DE RESPUESTA (JSON estricto):
 {
@@ -106,8 +132,15 @@ def _build_user_message(session: Session, user_id: str) -> str:
     if profile.goal_date:
         days_to_goal = (profile.goal_date - date.today()).days
 
+    today = date.today()
+    activities_today = _load_today_activities(user_id, today)
+
     payload = {
-        "today": date.today().isoformat(),
+        "today": today.isoformat(),
+        "activities_today": activities_today,
+        "training_status_today": (
+            "trained" if activities_today else "no_session_yet"
+        ),
         "runner": {
             "name": profile.name,
             "age": profile.age,

@@ -14,6 +14,7 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from api.deps import get_current_user_id, get_db
+from api.routers.diagnosis import _cache as _diagnosis_cache
 from data.garmin_client import GarminConnectClient
 from scripts.sync_garmin_real import (
     _sync_cronologia,
@@ -77,6 +78,10 @@ def post_sync(
     except Exception as exc:  # noqa: BLE001
         logger.exception("Sync actividad falló")
         error_msg = (error_msg or "") + f" | Actividad: {exc}"
+
+    # Invalida cache de diagnóstico para que el siguiente GET regenere con datos frescos
+    today_iso = datetime.now(tz=timezone.utc).date().isoformat()
+    _diagnosis_cache.pop((user_id, today_iso), None)
 
     finished = datetime.now(tz=timezone.utc)
     return SyncResult(
