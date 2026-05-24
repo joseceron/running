@@ -92,30 +92,75 @@ export default async function ActivityDetailPage({
                   </p>
                 </div>
               </div>
-              <p className="text-sm text-ink-primary leading-relaxed">
-                Esta carrera mantuvo{" "}
-                <strong className="text-accent-brand">
-                  {activity.zone_distribution_pct[1].toFixed(0)}% en{" "}
-                  <Term k="z2">Z2</Term>
-                </strong>{" "}
-                — exactamente la distribución polarizada que necesitas para
-                construir base aeróbica (Seiler 2010). Tu{" "}
-                <Term k="cadencia">cadencia</Term> media de{" "}
-                <strong>
-                  {activity.avg_cadence} <Term k="spm">spm</Term>
-                </strong>{" "}
-                {activity.avg_cadence >= 165
-                  ? "está en el rango óptimo — gran trabajo manteniendo zancadas cortas."
-                  : `está por debajo del objetivo (165-180 spm). En los tramos efectivos de carrera la cadencia estuvo mejor; los segmentos de caminata cuesta arriba arrastraron el promedio. Se mejora con `}
-                {activity.avg_cadence < 165 && (
-                  <Term k="drills_skipping">drills de skipping</Term>
-                )}
-                {activity.avg_cadence < 165 && " 3 veces por semana."}
-              </p>
-              <p className="text-xs text-accent-brand mt-3 font-medium">
-                📄 Kyröläinen et al. (2003) · Int J Sports Med · Observacional
-                — economía de carrera y cadencia
-              </p>
+              {(() => {
+                const paceSecsPerKm =
+                  activity.distance_km > 0
+                    ? activity.duration_secs / activity.distance_km
+                    : 0;
+                const isWalk =
+                  activity.type === "walk" || paceSecsPerKm > 540;
+                const z2Pct = activity.zone_distribution_pct[1] ?? 0;
+                const cad = activity.avg_cadence;
+
+                if (isWalk) {
+                  let cadEval: React.ReactNode;
+                  if (cad >= 130)
+                    cadEval = "está en rango de caminata enérgica — buen estímulo neuromuscular.";
+                  else if (cad >= 110)
+                    cadEval = "está en el rango normal de una caminata.";
+                  else
+                    cadEval = (
+                      <>está baja para una caminata activa. Una cadencia ≥120 spm aprovecha mejor el estímulo aeróbico.</>
+                    );
+                  return (
+                    <>
+                      <p className="text-sm text-ink-primary leading-relaxed">
+                        Esta caminata mantuvo{" "}
+                        <strong className="text-accent-brand">
+                          {z2Pct.toFixed(0)}% en <Term k="z2">Z2</Term>
+                        </strong>
+                        {" "}— ideal para construir base aeróbica sin carga mecánica
+                        de impacto (útil en días de recuperación o fase de
+                        reconstrucción). Tu <Term k="cadencia">cadencia</Term>{" "}
+                        media de <strong>{cad} <Term k="spm">spm</Term></strong>{" "}
+                        {cadEval}
+                      </p>
+                      <p className="text-xs text-accent-brand mt-3 font-medium">
+                        📄 Seiler (2010) · Int J Sports Physiol Perform · Review
+                        — distribución polarizada 80/20
+                      </p>
+                    </>
+                  );
+                }
+
+                return (
+                  <>
+                    <p className="text-sm text-ink-primary leading-relaxed">
+                      Esta carrera mantuvo{" "}
+                      <strong className="text-accent-brand">
+                        {z2Pct.toFixed(0)}% en <Term k="z2">Z2</Term>
+                      </strong>{" "}
+                      — exactamente la distribución polarizada que necesitas para
+                      construir base aeróbica (Seiler 2010). Tu{" "}
+                      <Term k="cadencia">cadencia</Term> media de{" "}
+                      <strong>
+                        {cad} <Term k="spm">spm</Term>
+                      </strong>{" "}
+                      {cad >= 165
+                        ? "está en el rango óptimo — gran trabajo manteniendo zancadas cortas."
+                        : `está por debajo del objetivo (165-180 spm). En los tramos efectivos de carrera la cadencia estuvo mejor; los segmentos de caminata cuesta arriba arrastraron el promedio. Se mejora con `}
+                      {cad < 165 && (
+                        <Term k="drills_skipping">drills de skipping</Term>
+                      )}
+                      {cad < 165 && " 3 veces por semana."}
+                    </p>
+                    <p className="text-xs text-accent-brand mt-3 font-medium">
+                      📄 Kyröläinen et al. (2003) · Int J Sports Med · Observacional
+                      — economía de carrera y cadencia
+                    </p>
+                  </>
+                );
+              })()}
             </div>
 
             {/* GLOSARIO — entendible por cualquier persona */}
