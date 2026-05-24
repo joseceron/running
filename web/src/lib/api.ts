@@ -175,16 +175,62 @@ async function fetchJson<T>(path: string): Promise<T> {
   return res.json() as Promise<T>;
 }
 
+function withDate(path: string, date?: string): string {
+  return date ? `${path}?date=${date}` : path;
+}
+
+export type Report = {
+  date: string;
+  activities_today: { hour: number; label: string; type: string }[];
+  biomechanics: {
+    cadence_spm: number | null;
+    stride_m: number | null;
+    gct_ms: number | null;
+    cadence_avg_7: number | null;
+    gct_avg_7: number | null;
+    cadence_delta: number | null;
+    gct_delta: number | null;
+    is_walk: boolean;
+  } | null;
+  heart: {
+    resting_hr: number | null;
+    resting_hr_baseline: number;
+    resting_hr_delta: number | null;
+    hrv_last_night: number | null;
+    hrv_baseline: number | null;
+    hrv_state: string;
+    vo2max: number | null;
+  };
+  load: {
+    body_battery_max: number | null;
+    body_battery_min: number | null;
+    stress_avg: number | null;
+    acwr: number | null;
+    acwr_zone: string;
+  };
+  gates: {
+    label: string;
+    status: "green" | "yellow" | "red";
+    detail: string;
+  }[];
+  interpretation: string[];
+  recommendation: string;
+};
+
 export const liebreApi = {
   dashboard: () => fetchJson<Dashboard>("/v1/users/me/dashboard"),
   profile: () => fetchJson<Profile>("/v1/users/me/profile"),
   hrv: () => fetchJson<HRV>("/v1/users/me/hrv"),
   weekly: () => fetchJson<Weekly>("/v1/users/me/weekly"),
   upcoming: () => fetchJson<UpcomingTrainings>("/v1/users/me/upcoming-trainings"),
-  diagnosis: () => fetchJson<Diagnosis>("/v1/users/me/diagnosis"),
-  cronologia: () => fetchJson<Cronologia>("/v1/users/me/cronologia"),
+  diagnosis: (date?: string) =>
+    fetchJson<Diagnosis>(withDate("/v1/users/me/diagnosis", date)),
+  cronologia: (date?: string) =>
+    fetchJson<Cronologia>(withDate("/v1/users/me/cronologia", date)),
   activity: (id: string) =>
     fetchJson<ActivityDetail>(`/v1/users/me/activities/${id}`),
+  report: (date?: string) =>
+    fetchJson<Report>(withDate("/v1/users/me/report", date)),
 };
 
 export function formatGoalTime(secs: number | null): string {

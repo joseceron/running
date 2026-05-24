@@ -12,18 +12,29 @@ import { Cronologia24h } from "@/components/dashboard/Cronologia24h";
 
 export const dynamic = "force-dynamic";
 
-export default async function DashboardPage() {
+type SearchParams = Promise<{ date?: string }>;
+
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: SearchParams;
+}) {
+  const { date } = await searchParams;
+  // Valida formato YYYY-MM-DD
+  const safeDate =
+    date && /^\d{4}-\d{2}-\d{2}$/.test(date) ? date : undefined;
+
   let data;
   let diagnosis = null;
   let cronologia = null;
   try {
     [data, diagnosis, cronologia] = await Promise.all([
       liebreApi.dashboard(),
-      liebreApi.diagnosis().catch((e) => {
+      liebreApi.diagnosis(safeDate).catch((e) => {
         console.error("diagnosis fetch failed", e);
         return null;
       }),
-      liebreApi.cronologia().catch((e) => {
+      liebreApi.cronologia(safeDate).catch((e) => {
         console.error("cronologia fetch failed", e);
         return null;
       }),
@@ -56,7 +67,11 @@ export default async function DashboardPage() {
 
       <main className="min-h-screen md:ml-[var(--sidebar-width)] pb-24 md:pb-0">
         <div className="max-w-6xl mx-auto px-4 md:px-8 py-6 md:py-8">
-          <TopBar userName={profile.name} title="resumen del día" />
+          <TopBar
+            userName={profile.name}
+            title="resumen del día"
+            currentDate={safeDate}
+          />
 
           {/* DIAGNÓSTICO + META */}
           <section

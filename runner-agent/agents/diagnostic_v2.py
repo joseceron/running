@@ -110,11 +110,15 @@ class DiagnosisResult:
     alert_level: str  # "info" | "warn" | "danger"
 
 
-def _build_user_message(session: Session, user_id: str) -> str:
+def _build_user_message(
+    session: Session, user_id: str, target_date: date | None = None
+) -> str:
     """Construye el contexto dinámico del usuario para el mensaje del turn."""
     profile = runner_profile.get(session, user_id)
     if profile is None:
         raise LookupError(f"Perfil no encontrado para user_id={user_id}")
+
+    target = target_date or date.today()
 
     baseline = hrv_repo.get_baseline(session, user_id)
     days_recorded, days_required = hrv_repo.get_baseline_progress(session, user_id)
@@ -130,13 +134,12 @@ def _build_user_message(session: Session, user_id: str) -> str:
 
     days_to_goal = None
     if profile.goal_date:
-        days_to_goal = (profile.goal_date - date.today()).days
+        days_to_goal = (profile.goal_date - target).days
 
-    today = date.today()
-    activities_today = _load_today_activities(user_id, today)
+    activities_today = _load_today_activities(user_id, target)
 
     payload = {
-        "today": today.isoformat(),
+        "today": target.isoformat(),
         "activities_today": activities_today,
         "training_status_today": (
             "trained" if activities_today else "no_session_yet"
@@ -195,14 +198,16 @@ def _build_user_message(session: Session, user_id: str) -> str:
     )
 
 
-def generate_diagnosis(session: Session, user_id: str) -> DiagnosisResult:
+def generate_diagnosis(
+    session: Session, user_id: str, target_date: date | None = None
+) -> DiagnosisResult:
     """Llama a Claude con prompt caching y retorna el diagnóstico estructurado."""
     api_key = os.environ.get("ANTHROPIC_API_KEY")
     if not api_key:
         raise RuntimeError("ANTHROPIC_API_KEY no definida en el entorno")
 
     client = Anthropic(api_key=api_key)
-    user_message = _build_user_message(session, user_id)
+    user_message = _build_user_message(session, user_id, target_date)
 
     response = client.messages.create(
         model=MODEL,

@@ -11,7 +11,7 @@ import json
 from datetime import date as DateT
 from pathlib import Path
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
 from api.deps import get_current_user_id, get_db
@@ -26,9 +26,9 @@ router = APIRouter(prefix="/users/me", tags=["cronologia"])
 CACHE_DIR = Path("/tmp/liebre_cache")
 
 
-def _read_cache(user_id: str) -> CronologiaOut | None:
-    """Lee el cache del día actual si existe."""
-    path = CACHE_DIR / f"cronologia_{user_id}_{DateT.today().isoformat()}.json"
+def _read_cache(user_id: str, target_date: DateT) -> CronologiaOut | None:
+    """Lee el cache de la fecha solicitada si existe."""
+    path = CACHE_DIR / f"cronologia_{user_id}_{target_date.isoformat()}.json"
     if not path.exists():
         return None
     try:
@@ -101,10 +101,27 @@ def _build_mock_day() -> CronologiaOut:
     summary="Cronología 24h — datos reales si hay cache, sino mock",
 )
 def get_cronologia(
+    date: DateT | None = Query(default=None, description="YYYY-MM-DD (default: hoy)"),
     user_id: str = Depends(get_current_user_id),
     db: Session = Depends(get_db),
 ) -> CronologiaOut:
-    cached = _read_cache(user_id)
+    target = date or DateT.today()
+    cached = _read_cache(user_id, target)
     if cached is not None:
         return cached
-    return _build_mock_day()
+    # Mock solo aplica para el día de hoy; días pasados sin cache devuelven vacío
+    if target == DateT.today():
+        return _build_mock_day()
+    return CronologiaOut(
+        points=[],
+        activities=[],
+        summary={
+            "body_battery_start": 0,
+            "body_battery_end": 0,
+            "body_battery_max": 0,
+            "body_battery_min": 0,
+            "stress_avg": 0,
+            "stress_max": 0,
+            "sleep_duration_min": 0,
+        },
+    )

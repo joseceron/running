@@ -6,9 +6,9 @@ quemar tokens en cada refresh del dashboard.
 from __future__ import annotations
 
 import logging
-from datetime import date, datetime, timezone
+from datetime import date as DateT, datetime, timezone
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from agents.diagnostic_v2 import generate_diagnosis
@@ -29,17 +29,19 @@ _cache: dict[tuple[str, str], DiagnosisOut] = {}
     summary="Diagnóstico del día generado por Claude (cacheado por día)",
 )
 def get_diagnosis(
+    date: DateT | None = Query(default=None, description="YYYY-MM-DD (default: hoy)"),
     user_id: str = Depends(get_current_user_id),
     db: Session = Depends(get_db),
 ) -> DiagnosisOut:
-    today_iso = date.today().isoformat()
-    cache_key = (user_id, today_iso)
+    target = date or DateT.today()
+    target_iso = target.isoformat()
+    cache_key = (user_id, target_iso)
 
     if cache_key in _cache:
         return _cache[cache_key]
 
     try:
-        result = generate_diagnosis(db, user_id)
+        result = generate_diagnosis(db, user_id, target)
     except Exception as exc:  # noqa: BLE001
         logger.exception("generate_diagnosis falló para user=%s", user_id)
         raise HTTPException(
@@ -64,9 +66,10 @@ def get_diagnosis(
     summary="Fuerza regeneración del diagnóstico (invalida cache)",
 )
 def refresh_diagnosis(
+    date: DateT | None = Query(default=None),
     user_id: str = Depends(get_current_user_id),
     db: Session = Depends(get_db),
 ) -> DiagnosisOut:
-    today_iso = date.today().isoformat()
-    _cache.pop((user_id, today_iso), None)
-    return get_diagnosis(user_id=user_id, db=db)
+    target = date or DateT.today()
+    _cache.pop((user_id, target.isoformat()), None)
+    return get_diagnosis(date=target, user_id=user_id, db=db)
