@@ -386,11 +386,13 @@ def _build_today_action(
     hrv_today: float | None,
     hrv_baseline: float | None,
     hrv_sd: float = 4.7,
+    weekday_plan: dict | None = None,
 ) -> TodayActionOut:
     """Wrapper Pydantic sobre `build_today_action` (lógica compartida).
 
     Acepta `activities_today` como lista de `ActivityTodayOut` (lo que ya pasa
-    el endpoint) y extrae los labels para el builder agnóstico.
+    el endpoint) y extrae los labels para el builder agnóstico. `weekday_plan`
+    es el override per-user (runner_profile.weekly_plan JSONB).
     """
     labels = [a.label for a in activities_today if getattr(a, "label", None)]
     data = build_today_action(
@@ -400,6 +402,7 @@ def _build_today_action(
         hrv_today=hrv_today,
         hrv_baseline=hrv_baseline,
         hrv_sd=hrv_sd,
+        weekday_plan=weekday_plan,
     )
     return TodayActionOut(**data)
 

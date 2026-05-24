@@ -121,6 +121,40 @@ class TestTodayActionContract:
         assert ta.temporal == "future"
         assert ta.status == "future_planned"
 
+    def test_wrapper_acepta_weekday_plan_kwarg(self) -> None:
+        """Regresión: report.py:945 llama al wrapper con weekday_plan=... .
+        Si el wrapper no acepta ese kwarg, /report devuelve 500."""
+        today = date.today()
+        custom = {
+            "0": ["rest", "Override lunes"],
+            "1": ["train", "Override martes"],
+            "2": ["rest", "Override miércoles"],
+            "3": ["train", "Override jueves"],
+            "4": ["train", "Override viernes"],
+            "5": ["train", "Override sábado"],
+            "6": ["rest", "Override domingo"],
+        }
+        # Llamada exacta como en report.py
+        ta = _build_today_action(
+            target=today,
+            activities_today=[],
+            acwr=1.0,
+            hrv_today=55.0,
+            hrv_baseline=55.0,
+            weekday_plan=custom,
+        )
+        self._assert_full_shape(ta)
+        # Y también con None (cuando profile.weekly_plan no está seteado)
+        ta_default = _build_today_action(
+            target=today,
+            activities_today=[],
+            acwr=1.0,
+            hrv_today=55.0,
+            hrv_baseline=55.0,
+            weekday_plan=None,
+        )
+        self._assert_full_shape(ta_default)
+
 
 # ─── Nutrition: el frontend usa real_world_examples + *_examples ──────
 
