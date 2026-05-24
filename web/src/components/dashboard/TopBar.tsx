@@ -4,6 +4,7 @@
  */
 
 import { DateNavigator } from "./DateNavigator";
+import { MobileNav } from "./Sidebar";
 import { SyncButton } from "./SyncButton";
 
 const TZ = "America/Bogota";
@@ -57,24 +58,38 @@ export function TopBar({
 
   return (
     <header
-      className="flex items-center justify-between border-b border-rule/60 gap-3 flex-wrap"
-      style={{ minHeight: 60, marginBottom: 20, paddingBottom: 12 }}
+      className="border-b border-rule/60"
+      style={{ marginBottom: 20, paddingBottom: 12 }}
     >
-      <div className="min-w-0">
-        <p className="text-base font-semibold text-ink-primary leading-tight">
-          {greeting}, {firstName}
-        </p>
-        <p className="text-xs text-ink-secondary mt-0.5 capitalize truncate">
-          Dashboard · {title}
-        </p>
-      </div>
-      <div className="flex items-center gap-3 shrink-0 flex-wrap justify-end">
-        <div className="text-right hidden sm:block">
-          <p className="label-uppercase">{isToday ? "Hoy" : "Día"}</p>
-          <p className="text-xs text-ink-secondary mt-0.5 capitalize">{label}</p>
+      {/* Fila 1: hamburger + saludo + sync (siempre cabe en una línea) */}
+      <div className="flex items-center justify-between gap-3" style={{ minHeight: 48 }}>
+        <div className="flex items-center gap-2.5 min-w-0 flex-1">
+          <MobileNav userName={userName} />
+          <div className="min-w-0">
+            <p className="text-base font-semibold text-ink-primary leading-tight truncate">
+              {greeting}, {firstName}
+            </p>
+            <p className="text-xs text-ink-secondary mt-0.5 capitalize truncate">
+              Dashboard · {title}
+            </p>
+          </div>
         </div>
-        {showDateNavigator && <DateNavigator />}
-        <SyncButton />
+        <div className="shrink-0">
+          <SyncButton compact />
+        </div>
+      </div>
+
+      {/* Fila 2: fecha + DateNavigator (puede envolverse en móvil) */}
+      <div className="flex items-center justify-between gap-3 mt-2.5 flex-wrap">
+        <div className="min-w-0">
+          <span className="label-uppercase mr-2">{isToday ? "Hoy" : "Día"}</span>
+          <span className="text-xs text-ink-secondary capitalize">{label}</span>
+        </div>
+        {showDateNavigator && (
+          <div className="shrink-0">
+            <DateNavigator />
+          </div>
+        )}
       </div>
     </header>
   );

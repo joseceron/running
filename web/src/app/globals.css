@@ -506,3 +506,111 @@ body {
   background-clip: text;
 }
 
+/* Indicador "live" — anillo pulsante alrededor de un dot verde */
+@keyframes liebre-pulse-ring {
+  0% { transform: scale(0.6); opacity: 0.9; }
+  100% { transform: scale(2.4); opacity: 0; }
+}
+.liebre-live-dot {
+  position: relative;
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #3fb950;
+  box-shadow: 0 0 8px rgba(63, 185, 80, 0.6);
+}
+.liebre-live-dot::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: #3fb950;
+  animation: liebre-pulse-ring 1.8s ease-out infinite;
+}
+
+/* Typing dots — pequeño "..." animado para feedback "analizando" */
+@keyframes liebre-typing-dot {
+  0%, 60%, 100% { opacity: 0.25; transform: translateY(0); }
+  30% { opacity: 1; transform: translateY(-2px); }
+}
+.liebre-typing-dots span {
+  display: inline-block;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: currentColor;
+  margin: 0 1.5px;
+  animation: liebre-typing-dot 1.4s ease-in-out infinite;
+}
+.liebre-typing-dots span:nth-child(2) { animation-delay: 0.18s; }
+.liebre-typing-dots span:nth-child(3) { animation-delay: 0.36s; }
+
+/* Float slow — para badges/callouts flotantes sobre product preview */
+@keyframes liebre-float-slow {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+.liebre-float-slow {
+  animation: liebre-float-slow 5s ease-in-out infinite;
+}
+
+/* Mock window — frame estilo browser para product preview */
+.liebre-mockwin {
+  background: linear-gradient(180deg, #0d1117 0%, #0a0e13 100%);
+  border: 1px solid #30363d;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow:
+    0 30px 80px rgba(0, 0, 0, 0.6),
+    0 0 0 1px rgba(47, 129, 247, 0.08),
+    0 0 80px rgba(47, 129, 247, 0.12);
+}
+.liebre-mockwin-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 14px;
+  border-bottom: 1px solid #21262d;
+  background: #0d1117;
+}
+.liebre-mockwin-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+/* Trust logo strip — wordmarks muted que iluminan suave en hover */
+.liebre-trust-logo {
+  color: #484f58;
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  transition: color 0.25s ease, opacity 0.25s ease;
+  opacity: 0.85;
+}
+.liebre-trust-logo:hover {
+  color: #8b949e;
+  opacity: 1;
+}
+
+/* Reveal lateral (slide-in desde derecha) — para hero split visual */
+@keyframes liebre-reveal-right {
+  0% { opacity: 0; transform: translateX(24px) scale(0.98); }
+  100% { opacity: 1; transform: translateX(0) scale(1); }
+}
+.liebre-reveal-right {
+  animation: liebre-reveal-right 1s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+
+/* ── Mobile drawer animation ── */
+@keyframes liebre-slide-in {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+
+/* ── Defensive overflow guard (móvil) ── */
+@media (max-width: 768px) {
+  html, body { overflow-x: hidden; max-width: 100vw; }
+}

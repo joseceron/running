@@ -10,7 +10,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import type { ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
 type NavItem = {
   href: string;
@@ -27,16 +27,19 @@ const NAV: NavItem[] = [
   { href: "/dashboard/perfil", label: "Perfil", icon: <IconUser /> },
 ];
 
-export function Sidebar({ userName }: { userName: string }) {
+function SidebarContent({
+  userName,
+  onItemClick,
+}: {
+  userName: string;
+  onItemClick?: () => void;
+}) {
   const firstName = userName.split(" ")[0];
   const pathname = usePathname();
   return (
-    <aside
-      className="hidden md:flex flex-col fixed top-0 left-0 h-screen bg-bg-sidebar text-ink-on-dark"
-      style={{ width: "var(--sidebar-width)" }}
-    >
+    <div className="flex flex-col h-full bg-bg-sidebar text-ink-on-dark">
       <div className="px-6 pt-7 pb-9">
-        <Link href="/" className="wordmark text-3xl tracking-tight">
+        <Link href="/" className="wordmark text-3xl tracking-tight" onClick={onItemClick}>
           liebre<span className="dot">.</span>
         </Link>
         <p className="text-xs text-ink-on-dark-soft mt-1">
@@ -44,7 +47,7 @@ export function Sidebar({ userName }: { userName: string }) {
         </p>
       </div>
 
-      <nav className="flex-1 px-3">
+      <nav className="flex-1 px-3 overflow-y-auto">
         {NAV.map((item) => {
           const isActive =
             item.href === "/dashboard"
@@ -54,6 +57,7 @@ export function Sidebar({ userName }: { userName: string }) {
             <Link
               key={item.href}
               href={item.href}
+              onClick={onItemClick}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors ${
                 isActive
                   ? "bg-white/8 text-ink-on-dark"
@@ -69,7 +73,7 @@ export function Sidebar({ userName }: { userName: string }) {
 
       <div className="px-6 py-5 border-t border-white/8">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-full bg-accent-brand flex items-center justify-center text-sm font-semibold">
+          <div className="w-9 h-9 rounded-full bg-accent-brand flex items-center justify-center text-sm font-semibold shrink-0">
             {firstName[0]}
           </div>
           <div className="min-w-0">
@@ -80,7 +84,95 @@ export function Sidebar({ userName }: { userName: string }) {
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+export function Sidebar({ userName }: { userName: string }) {
+  return (
+    <aside
+      className="hidden md:flex flex-col fixed top-0 left-0 h-screen"
+      style={{ width: "var(--sidebar-width)" }}
+    >
+      <SidebarContent userName={userName} />
     </aside>
+  );
+}
+
+/**
+ * MobileNav — botón hamburguesa que abre el sidebar como drawer overlay
+ * en pantallas pequeñas. Se cierra al tocar fuera, presionar Escape o
+ * navegar a otro item.
+ */
+export function MobileNav({ userName }: { userName: string }) {
+  const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("keydown", onKey);
+    // Bloquea el scroll del body mientras el drawer está abierto
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prev;
+    };
+  }, [open]);
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        aria-label="Abrir menú"
+        title="Menú"
+        className="md:hidden w-9 h-9 rounded-md flex items-center justify-center border border-rule hover:border-accent-brand transition-colors"
+        style={{ background: "var(--bg-card)" }}
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+          <line x1="3" y1="6" x2="21" y2="6" />
+          <line x1="3" y1="12" x2="21" y2="12" />
+          <line x1="3" y1="18" x2="21" y2="18" />
+        </svg>
+      </button>
+
+      {open && (
+        <div
+          className="md:hidden fixed inset-0 z-50"
+          onClick={() => setOpen(false)}
+          role="dialog"
+          aria-modal="true"
+        >
+          {/* backdrop */}
+          <div
+            className="absolute inset-0"
+            style={{ background: "rgba(0,0,0,0.45)" }}
+          />
+          {/* drawer */}
+          <div
+            className="absolute top-0 left-0 h-full w-72 max-w-[85vw] shadow-xl"
+            onClick={(e) => e.stopPropagation()}
+            style={{ animation: "liebre-slide-in 0.2s ease-out" }}
+          >
+            <button
+              type="button"
+              onClick={() => setOpen(false)}
+              aria-label="Cerrar menú"
+              className="absolute top-3 right-3 w-8 h-8 rounded-md flex items-center justify-center text-white/80 hover:text-white hover:bg-white/10 z-10"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </button>
+            <SidebarContent userName={userName} onItemClick={() => setOpen(false)} />
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 

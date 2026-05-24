@@ -2,6 +2,7 @@ import { liebreApi } from "@/lib/api";
 import { Sidebar } from "@/components/dashboard/Sidebar";
 import { TopBar } from "@/components/dashboard/TopBar";
 import { InsightSection } from "@/components/dashboard/InsightCards";
+import { TodayActionCard } from "@/components/dashboard/TodayActionCard";
 
 export const dynamic = "force-dynamic";
 
@@ -65,7 +66,12 @@ export default async function ReportPage({
             currentDate={safeDate}
           />
 
-          {/* INSIGHTS CIENTÍFICOS — diferencial Liebre, va primero */}
+          {/* HOY: acción inequívoca arriba */}
+          <div className="mb-4">
+            <TodayActionCard action={report.today_action} />
+          </div>
+
+          {/* INSIGHTS CIENTÍFICOS — diferencial Liebre */}
           <InsightSection insights={report.insights} />
 
           {/* 1. Entrenos del día */}

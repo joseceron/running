@@ -10,6 +10,7 @@ import { FactorImpactList } from "@/components/dashboard/FactorImpactList";
 import { UpcomingTrainingsCard } from "@/components/dashboard/UpcomingTrainingsCard";
 import { Cronologia24h } from "@/components/dashboard/Cronologia24h";
 import { InsightSection } from "@/components/dashboard/InsightCards";
+import { TodayActionCard } from "@/components/dashboard/TodayActionCard";
 
 export const dynamic = "force-dynamic";
 
@@ -79,7 +80,17 @@ export default async function DashboardPage({
             currentDate={safeDate}
           />
 
-          {/* DIAGNÓSTICO + META */}
+          {/* HOY: acción inequívoca + meta */}
+          {report?.today_action && (
+            <section className="grid md:grid-cols-3 gap-4 mb-4" style={{ gridAutoRows: "min-content" }}>
+              <div className="md:col-span-2">
+                <TodayActionCard action={report.today_action} />
+              </div>
+              <GoalCard profile={profile} daysToGoal={days_to_goal} />
+            </section>
+          )}
+
+          {/* DIAGNÓSTICO (texto LLM cuando hay créditos) */}
           <section
             className="grid md:grid-cols-3 gap-4"
             style={{ gridAutoRows: "min-content" }}
@@ -90,7 +101,9 @@ export default async function DashboardPage({
               weekly={weekly}
               diagnosis={diagnosis}
             />
-            <GoalCard profile={profile} daysToGoal={days_to_goal} />
+            {!report?.today_action && (
+              <GoalCard profile={profile} daysToGoal={days_to_goal} />
+            )}
           </section>
 
           {/* INSIGHTS CIENTÍFICOS — el diferencial Liebre, segundo lugar de prominencia */}

@@ -227,8 +227,18 @@ export type Insights = {
   } | null;
 };
 
+export type TodayAction = {
+  status: "rest" | "train" | "active_recovery" | "trained_already";
+  headline: string;
+  short_reason: string;
+  reasons: string[];
+  allowed: string[];
+  next_session: string;
+};
+
 export type Report = {
   date: string;
+  today_action: TodayAction;
   activities_today: { hour: number; label: string; type: string }[];
   biomechanics: {
     cadence_spm: number | null;
