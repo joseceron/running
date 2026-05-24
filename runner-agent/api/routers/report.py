@@ -69,6 +69,72 @@ class LoadOut(BaseModel):
     acwr_zone: str
 
 
+# ─── Insights científicos (diferencial Liebre) ────────────
+
+
+class FatBurnZone(BaseModel):
+    zone: int
+    label: str
+    pct_time: float
+    kcal_total: float
+    kcal_fat: float
+    kcal_cho: float
+    fat_pct: int  # % de calorías que viene de grasa en esta zona
+
+
+class FatBurnOut(BaseModel):
+    """FatMax: estimación de oxidación de grasa por zona FC en la última sesión.
+    Fórmula derivada de Achten & Jeukendrup (2004) y guidelines de FatMax:
+    en Z1 ~80% energía viene de grasa, Z2 ~65%, Z3 ~40%, Z4 ~20%, Z5 ~5%."""
+    activity_name: str
+    total_kcal: int
+    fat_kcal: int
+    cho_kcal: int
+    fat_grams: float  # kcal_fat / 9
+    by_zone: list[FatBurnZone]
+    citation: str = "Achten & Jeukendrup (2004) · Int J Sports Med · Review"
+
+
+class CardiacDriftOut(BaseModel):
+    """Drift FC primera vs segunda mitad — eficiencia cardiaca."""
+    activity_name: str
+    first_half_hr: float
+    second_half_hr: float
+    drift_pct: float
+    evaluation: str  # "eficiente" / "regular" / "base aún verde"
+    citation: str = "Lamberts & Lambert (2009) · J Strength Cond Res · Observacional"
+
+
+class HeartProgressOut(BaseModel):
+    """FC reposo + qué le está pasando al corazón."""
+    rhr_current: int
+    rhr_baseline: float
+    rhr_trend: str  # "improving" / "stable" / "regressing"
+    explanation: str
+    citation: str = "Seiler (2010) · Int J Sports Physiol Perform · Review"
+
+
+class PolarizationOut(BaseModel):
+    """Distribución 80/20 — Seiler."""
+    z1_z2_pct: float
+    z3_pct: float
+    z4_z5_pct: float
+    ideal_z1_z2_pct: int = 80
+    ideal_z3_pct: int = 0
+    ideal_z4_z5_pct: int = 20
+    evaluation: str  # "aligned" / "too_easy" / "too_hard" / "mixed"
+    source_label: str  # "última carrera" / "últimos 7 días" según lo disponible
+    citation: str = "Seiler (2010) · Int J Sports Physiol Perform · Review"
+
+
+class InsightsOut(BaseModel):
+    """Análisis científicos — el diferencial Liebre vs Connect."""
+    fat_burn: FatBurnOut | None = None
+    cardiac_drift: CardiacDriftOut | None = None
+    heart_progress: HeartProgressOut | None = None
+    polarization: PolarizationOut | None = None
+
+
 class ReportOut(BaseModel):
     date: DateT
     activities_today: list[ActivityTodayOut]
@@ -78,6 +144,7 @@ class ReportOut(BaseModel):
     gates: list[GateOut]
     interpretation: list[str] = Field(default_factory=list)
     recommendation: str
+    insights: InsightsOut | None = None  # nuevo — diferencial científico
 
 
 # ─── Helpers ─────────────────────────────────────────────
@@ -108,6 +175,157 @@ def _is_walk(distance_km: float, duration_secs: int) -> bool:
         return False
     pace = duration_secs / distance_km
     return pace > 540  # > 9:00/km
+
+
+# ─── Insights: FatMax por zona ─────────────────────────────
+
+# Fracción de energía proveniente de grasa por zona FC.
+# Aproximación de Achten & Jeukendrup (FatMax) y guidelines clásicas:
+# Z1 (50-60% FCmáx): ~80% grasa
+# Z2 (60-70% FCmáx): ~65% grasa
+# Z3 (70-80% FCmáx): ~40% grasa
+# Z4 (80-90% FCmáx): ~20% grasa
+# Z5 (>90% FCmáx): ~5% grasa
+FAT_PCT_BY_ZONE = [80, 65, 40, 20, 5]
+ZONE_LABELS = ["Z1 · recuperación", "Z2 · base aeróbica", "Z3 · umbral aeróbico", "Z4 · VO₂máx", "Z5 · anaeróbico"]
+
+
+def _calc_fat_burn(activity: dict) -> FatBurnOut | None:
+    total_kcal = activity.get("calories") or 0
+    zone_pct = activity.get("zone_distribution_pct") or []
+    if total_kcal <= 0 or len(zone_pct) < 5:
+        return None
+
+    by_zone: list[FatBurnZone] = []
+    fat_total = 0.0
+    for i in range(5):
+        pct_time = zone_pct[i] or 0
+        kcal_z = total_kcal * (pct_time / 100)
+        fat_pct = FAT_PCT_BY_ZONE[i]
+        fat_z = kcal_z * (fat_pct / 100)
+        cho_z = kcal_z - fat_z
+        fat_total += fat_z
+        by_zone.append(
+            FatBurnZone(
+                zone=i + 1,
+                label=ZONE_LABELS[i],
+                pct_time=round(pct_time, 1),
+                kcal_total=round(kcal_z, 1),
+                kcal_fat=round(fat_z, 1),
+                kcal_cho=round(cho_z, 1),
+                fat_pct=fat_pct,
+            )
+        )
+
+    return FatBurnOut(
+        activity_name=activity.get("name") or "Última sesión",
+        total_kcal=round(total_kcal),
+        fat_kcal=round(fat_total),
+        cho_kcal=round(total_kcal - fat_total),
+        fat_grams=round(fat_total / 9, 1),
+        by_zone=by_zone,
+    )
+
+
+# ─── Insights: cardiac drift ────────────────────────────────
+
+
+def _calc_cardiac_drift(activity: dict) -> CardiacDriftOut | None:
+    samples = activity.get("samples") or []
+    # Filtrar samples con HR válido tras los primeros 5 min (warmup)
+    valid = [
+        s for s in samples
+        if s.get("hr") and s.get("t_secs") is not None and s["t_secs"] >= 300
+    ]
+    if len(valid) < 20:
+        return None
+    mid = len(valid) // 2
+    first_half = valid[:mid]
+    second_half = valid[mid:]
+    hr1 = sum(s["hr"] for s in first_half) / len(first_half)
+    hr2 = sum(s["hr"] for s in second_half) / len(second_half)
+    drift = (hr2 - hr1) / hr1 * 100 if hr1 > 0 else 0
+
+    if drift < 5:
+        evaluation = "eficiente — corazón mantiene FC estable, sin fatiga"
+    elif drift < 10:
+        evaluation = "regular — algo de fatiga acumulada en la segunda mitad"
+    else:
+        evaluation = "base aún verde — la FC se va arriba a pesar del mismo esfuerzo"
+
+    return CardiacDriftOut(
+        activity_name=activity.get("name") or "Última sesión",
+        first_half_hr=round(hr1, 1),
+        second_half_hr=round(hr2, 1),
+        drift_pct=round(drift, 2),
+        evaluation=evaluation,
+    )
+
+
+# ─── Insights: heart progress (hipertrofia VI) ─────────────
+
+
+def _build_heart_progress(rhr_today: int | None, rhr_baseline: float) -> HeartProgressOut:
+    rhr_current = rhr_today or int(rhr_baseline)
+    # Sin histórico, hacemos lectura del estado: si está dentro de baseline o por debajo → improving
+    if rhr_current <= rhr_baseline:
+        trend = "improving"
+        explanation = (
+            f"Tu FC de reposo en {rhr_current} lpm está alineada con tu baseline ({rhr_baseline:.0f}). "
+            "El Z2 prolongado provoca hipertrofia excéntrica del ventrículo izquierdo: la cámara cardíaca "
+            "se agranda, sube el volumen sistólico y baja la FC reposo. Es la adaptación que más se traduce "
+            "en rendimiento sostenido para 21K. Si bajas otros 3-4 lpm en las próximas 6 semanas, vas en ruta."
+        )
+    elif rhr_current <= rhr_baseline + 4:
+        trend = "stable"
+        explanation = (
+            f"FC de reposo {rhr_current} lpm — levemente sobre tu baseline ({rhr_baseline:.0f}). "
+            "Puede ser estrés externo, sueño insuficiente o carga acumulada de la semana. Una noche no es tendencia."
+        )
+    else:
+        trend = "regressing"
+        explanation = (
+            f"FC de reposo {rhr_current} lpm — significativamente sobre baseline ({rhr_baseline:.0f}). "
+            "Señal de fatiga acumulada. Considera día suave + dormir 8h+ con el reloj puesto para HRV."
+        )
+
+    return HeartProgressOut(
+        rhr_current=rhr_current,
+        rhr_baseline=rhr_baseline,
+        rhr_trend=trend,
+        explanation=explanation,
+    )
+
+
+# ─── Insights: polarización 80/20 ───────────────────────────
+
+
+def _build_polarization(activity: dict) -> PolarizationOut | None:
+    zone_pct = activity.get("zone_distribution_pct") or []
+    if len(zone_pct) < 5:
+        return None
+    z12 = (zone_pct[0] or 0) + (zone_pct[1] or 0)
+    z3 = zone_pct[2] or 0
+    z45 = (zone_pct[3] or 0) + (zone_pct[4] or 0)
+    # Evaluación
+    if 75 <= z12 <= 85 and z45 >= 10:
+        evaluation = "aligned"
+    elif z12 > 90 and z45 < 5:
+        evaluation = "too_easy"
+    elif z45 > 30:
+        evaluation = "too_hard"
+    elif z3 > 25:
+        evaluation = "mixed"  # zona "gris" — ni base ni VO2máx
+    else:
+        evaluation = "mixed"
+
+    return PolarizationOut(
+        z1_z2_pct=round(z12, 1),
+        z3_pct=round(z3, 1),
+        z4_z5_pct=round(z45, 1),
+        evaluation=evaluation,
+        source_label="última carrera (próximamente: semanal)",
+    )
 
 
 # ─── Endpoint ────────────────────────────────────────────
@@ -358,6 +576,16 @@ def get_report(
     else:
         recommendation = "**Caminata Z2 50-60 min** — patrón base de la semana."
 
+    # 9. Insights científicos (diferencial Liebre)
+    insights: InsightsOut | None = None
+    if latest:
+        insights = InsightsOut(
+            fat_burn=_calc_fat_burn(latest),
+            cardiac_drift=_calc_cardiac_drift(latest),
+            heart_progress=_build_heart_progress(rhr_today, rhr_base),
+            polarization=_build_polarization(latest),
+        )
+
     return ReportOut(
         date=target,
         activities_today=activities_out,
@@ -367,4 +595,5 @@ def get_report(
         gates=gates,
         interpretation=interp,
         recommendation=recommendation,
+        insights=insights,
     )

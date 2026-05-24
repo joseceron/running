@@ -9,6 +9,7 @@ import { DiagnosticoDelDiaCard } from "@/components/dashboard/DiagnosticoDelDiaC
 import { FactorImpactList } from "@/components/dashboard/FactorImpactList";
 import { UpcomingTrainingsCard } from "@/components/dashboard/UpcomingTrainingsCard";
 import { Cronologia24h } from "@/components/dashboard/Cronologia24h";
+import { InsightSection } from "@/components/dashboard/InsightCards";
 
 export const dynamic = "force-dynamic";
 
@@ -27,8 +28,9 @@ export default async function DashboardPage({
   let data;
   let diagnosis = null;
   let cronologia = null;
+  let report = null;
   try {
-    [data, diagnosis, cronologia] = await Promise.all([
+    [data, diagnosis, cronologia, report] = await Promise.all([
       liebreApi.dashboard(),
       liebreApi.diagnosis(safeDate).catch((e) => {
         console.error("diagnosis fetch failed", e);
@@ -36,6 +38,10 @@ export default async function DashboardPage({
       }),
       liebreApi.cronologia(safeDate).catch((e) => {
         console.error("cronologia fetch failed", e);
+        return null;
+      }),
+      liebreApi.report(safeDate).catch((e) => {
+        console.error("report fetch failed", e);
         return null;
       }),
     ]);
@@ -86,6 +92,9 @@ export default async function DashboardPage({
             />
             <GoalCard profile={profile} daysToGoal={days_to_goal} />
           </section>
+
+          {/* INSIGHTS CIENTÍFICOS — el diferencial Liebre, segundo lugar de prominencia */}
+          {report?.insights && <InsightSection insights={report.insights} />}
 
           {/* HRV + Perfil */}
           <section className="grid md:grid-cols-3 gap-4 mt-4">

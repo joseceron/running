@@ -1,6 +1,7 @@
 import { liebreApi } from "@/lib/api";
 import { Sidebar } from "@/components/dashboard/Sidebar";
 import { TopBar } from "@/components/dashboard/TopBar";
+import { InsightSection } from "@/components/dashboard/InsightCards";
 
 export const dynamic = "force-dynamic";
 
@@ -63,6 +64,9 @@ export default async function ReportPage({
             title="reporte del día — 8 secciones"
             currentDate={safeDate}
           />
+
+          {/* INSIGHTS CIENTÍFICOS — diferencial Liebre, va primero */}
+          <InsightSection insights={report.insights} />
 
           {/* 1. Entrenos del día */}
           <Section number={1} title="Entrenos del día">

@@ -179,6 +179,54 @@ function withDate(path: string, date?: string): string {
   return date ? `${path}?date=${date}` : path;
 }
 
+export type FatBurnZone = {
+  zone: number;
+  label: string;
+  pct_time: number;
+  kcal_total: number;
+  kcal_fat: number;
+  kcal_cho: number;
+  fat_pct: number;
+};
+
+export type Insights = {
+  fat_burn: {
+    activity_name: string;
+    total_kcal: number;
+    fat_kcal: number;
+    cho_kcal: number;
+    fat_grams: number;
+    by_zone: FatBurnZone[];
+    citation: string;
+  } | null;
+  cardiac_drift: {
+    activity_name: string;
+    first_half_hr: number;
+    second_half_hr: number;
+    drift_pct: number;
+    evaluation: string;
+    citation: string;
+  } | null;
+  heart_progress: {
+    rhr_current: number;
+    rhr_baseline: number;
+    rhr_trend: "improving" | "stable" | "regressing";
+    explanation: string;
+    citation: string;
+  } | null;
+  polarization: {
+    z1_z2_pct: number;
+    z3_pct: number;
+    z4_z5_pct: number;
+    ideal_z1_z2_pct: number;
+    ideal_z3_pct: number;
+    ideal_z4_z5_pct: number;
+    evaluation: "aligned" | "too_easy" | "too_hard" | "mixed";
+    source_label: string;
+    citation: string;
+  } | null;
+};
+
 export type Report = {
   date: string;
   activities_today: { hour: number; label: string; type: string }[];
@@ -215,6 +263,7 @@ export type Report = {
   }[];
   interpretation: string[];
   recommendation: string;
+  insights: Insights | null;
 };
 
 export const liebreApi = {
