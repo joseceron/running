@@ -6,18 +6,21 @@
  * Inactivo: ícono outline + texto opaco.
  */
 
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 
 type NavItem = {
   href: string;
   label: string;
   icon: ReactNode;
-  active?: boolean;
 };
 
 const NAV: NavItem[] = [
-  { href: "/dashboard", label: "Inicio", icon: <IconHome />, active: true },
+  { href: "/dashboard", label: "Inicio", icon: <IconHome /> },
+  { href: "/dashboard/reporte", label: "Reporte", icon: <IconReport /> },
   { href: "/dashboard/actividad/latest", label: "Última actividad", icon: <IconRun /> },
   { href: "/dashboard/salud", label: "Salud", icon: <IconHeart /> },
   { href: "/dashboard/ciencia", label: "Ciencia", icon: <IconBook /> },
@@ -26,6 +29,7 @@ const NAV: NavItem[] = [
 
 export function Sidebar({ userName }: { userName: string }) {
   const firstName = userName.split(" ")[0];
+  const pathname = usePathname();
   return (
     <aside
       className="hidden md:flex flex-col fixed top-0 left-0 h-screen bg-bg-sidebar text-ink-on-dark"
@@ -41,20 +45,26 @@ export function Sidebar({ userName }: { userName: string }) {
       </div>
 
       <nav className="flex-1 px-3">
-        {NAV.map((item) => (
-          <Link
-            key={item.href}
-            href={item.href}
-            className={`flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors ${
-              item.active
-                ? "bg-white/8 text-ink-on-dark"
-                : "text-ink-on-dark-soft hover:bg-white/5 hover:text-ink-on-dark"
-            }`}
-          >
-            <span className="opacity-90">{item.icon}</span>
-            <span>{item.label}</span>
-          </Link>
-        ))}
+        {NAV.map((item) => {
+          const isActive =
+            item.href === "/dashboard"
+              ? pathname === "/dashboard"
+              : pathname.startsWith(item.href);
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors ${
+                isActive
+                  ? "bg-white/8 text-ink-on-dark"
+                  : "text-ink-on-dark-soft hover:bg-white/5 hover:text-ink-on-dark"
+              }`}
+            >
+              <span className="opacity-90">{item.icon}</span>
+              <span>{item.label}</span>
+            </Link>
+          );
+        })}
       </nav>
 
       <div className="px-6 py-5 border-t border-white/8">
@@ -76,6 +86,16 @@ export function Sidebar({ userName }: { userName: string }) {
 
 /* ─── íconos inline SVG monocromos ─── */
 
+function IconReport() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+      <path d="M14 2v6h6" />
+      <path d="M8 13h8" />
+      <path d="M8 17h5" />
+    </svg>
+  );
+}
 function IconHome() {
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
