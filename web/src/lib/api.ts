@@ -228,12 +228,49 @@ export type Insights = {
 };
 
 export type TodayAction = {
-  status: "rest" | "train" | "active_recovery" | "trained_already";
+  status:
+    | "rest"
+    | "train"
+    | "active_recovery"
+    | "trained_already"
+    | "past_executed"
+    | "past_rest_planned"
+    | "past_missed"
+    | "future_planned";
+  temporal: "today" | "past" | "future";
   headline: string;
   short_reason: string;
   reasons: string[];
   allowed: string[];
   next_session: string;
+};
+
+export type Nutrition = {
+  hydration: {
+    water_ml: number;
+    electrolytes_needed: boolean;
+    pre_session_ml: number;
+    during_session_ml_per_hour: number;
+    post_session_ml: number;
+    notes: string[];
+  };
+  macros: {
+    fase: string;
+    kcal_estimadas: number;
+    carbs_g: number;
+    protein_g: number;
+    fat_g: number;
+    timing_notes: string[];
+  };
+  environment: {
+    altitude_msnm: number;
+    sun_intensity: string;
+    sunscreen_spf: number;
+    sunscreen_reapply_min: number;
+    extra_notes: string[];
+  };
+  expert_cta: string;
+  citation: string;
 };
 
 export type Report = {
@@ -272,8 +309,8 @@ export type Report = {
     detail: string;
   }[];
   interpretation: string[];
-  recommendation: string;
   insights: Insights | null;
+  nutrition: Nutrition | null;
 };
 
 export const liebreApi = {

@@ -94,13 +94,15 @@ function buildPlaceholderDiagnostico({
   if (hrv.status === "building_baseline") {
     return {
       narrative: `Aún estamos construyendo tu baseline personal de HRV (${hrv.days_recorded} de ${hrv.days_required} noches). Tu semana muestra ${lastWeek?.executed_km?.toFixed(1) ?? "—"} km ejecutados con ACWR ${lastWeek?.acwr?.toFixed(2) ?? "—"}, en zona segura.`,
-      action: `Sincroniza tu Garmin esta noche y continúa con rodajes Z2 30-40 min hasta completar las ${hrv.days_required - hrv.days_recorded} noches restantes.`,
-      citation: "Seiler (2010) · Int J Sports Physiol Perform · Review",
+      // Acción inequívoca: dormir con el reloj para completar baseline.
+      // Lo de "qué hacer hoy" vive en TodayActionCard (single source of truth).
+      action: `Dormir con el reloj puesto las próximas ${Math.max(0, hrv.days_required - hrv.days_recorded)} noches — sin baseline completo las recomendaciones de carga van a ciegas. La acción de entrenamiento de hoy la indica la tarjeta superior.`,
+      citation: "Buchheit (2014) · Front Physiol · Review (HRV baseline individual)",
     };
   }
   return {
     narrative: `Tu HRV de ${hrv.latest_value} ms está dentro del rango balanceado. El sistema autónomo refleja buena recuperación.`,
-    action: `Puedes hacer la sesión planificada. Si toca Z4-Z5, calentamiento progresivo 12-15 min.`,
-    citation: "Bangsbo et al. (2013) · J Sports Sci · RCT",
+    action: `La acción de entrenamiento de hoy la indica la tarjeta superior (con prioridad sobre este texto cuando hay contradicción).`,
+    citation: "Plews & Buchheit (2017) · J Strength Cond Res · Observacional",
   };
 }

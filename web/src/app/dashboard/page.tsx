@@ -11,6 +11,7 @@ import { UpcomingTrainingsCard } from "@/components/dashboard/UpcomingTrainingsC
 import { Cronologia24h } from "@/components/dashboard/Cronologia24h";
 import { InsightSection } from "@/components/dashboard/InsightCards";
 import { TodayActionCard } from "@/components/dashboard/TodayActionCard";
+import { NutritionCard } from "@/components/dashboard/NutritionCard";
 
 export const dynamic = "force-dynamic";
 
@@ -106,8 +107,11 @@ export default async function DashboardPage({
             )}
           </section>
 
-          {/* INSIGHTS CIENTÍFICOS — el diferencial Liebre, segundo lugar de prominencia */}
+          {/* INSIGHTS CIENTÍFICOS — diferencial Liebre */}
           {report?.insights && <InsightSection insights={report.insights} />}
+
+          {/* NUTRICIÓN — pilar diferencial + base para monetización Luz Dálida */}
+          {report?.nutrition && <NutritionCard data={report.nutrition} />}
 
           {/* HRV + Perfil */}
           <section className="grid md:grid-cols-3 gap-4 mt-4">

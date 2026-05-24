@@ -136,13 +136,61 @@ class InsightsOut(BaseModel):
 
 
 class TodayActionOut(BaseModel):
-    """Recomendación inequívoca para HOY."""
-    status: Literal["rest", "train", "active_recovery", "trained_already"]
-    headline: str  # "DESCANSA HOY" / "ENTRENA HOY: caminata Z2 50 min"
+    """Recomendación inequívoca para la fecha consultada.
+
+    `temporal` distingue 3 casos visuales/semánticos:
+    - `today`: lo que tiene que hacer HOY (lógica original)
+    - `past`: vista retrospectiva — qué hizo o no hizo ese día
+    - `future`: vista anticipada — qué tiene planificado
+    """
+    status: Literal[
+        # Estados de HOY
+        "rest", "train", "active_recovery", "trained_already",
+        # Estados de PASADO
+        "past_executed", "past_rest_planned", "past_missed",
+        # Estado FUTURO
+        "future_planned",
+    ]
+    temporal: Literal["today", "past", "future"]
+    headline: str  # "DESCANSA HOY" / "EJECUTADO ✓" / "NO SE REALIZÓ" / "PLANIFICADO"
     short_reason: str  # 1 frase, lo que se ve grande
     reasons: list[str]  # bullets con datos objetivos
-    allowed: list[str]  # qué SÍ se puede hacer
-    next_session: str  # qué viene después (ej: "Mañana: caminata Z2 50-60 min")
+    allowed: list[str]  # qué SÍ se puede hacer (vacío si es pasado)
+    next_session: str  # qué viene después (vacío si es futuro)
+
+
+class HydrationTipOut(BaseModel):
+    water_ml: int
+    electrolytes_needed: bool
+    pre_session_ml: int
+    during_session_ml_per_hour: int
+    post_session_ml: int
+    notes: list[str]
+
+
+class MacroTipOut(BaseModel):
+    fase: str  # "carga" / "recuperación" / "mantenimiento"
+    kcal_estimadas: int
+    carbs_g: int
+    protein_g: int
+    fat_g: int
+    timing_notes: list[str]
+
+
+class EnvironmentTipOut(BaseModel):
+    altitude_msnm: int
+    sun_intensity: str  # "alta" / "media" / "baja"
+    sunscreen_spf: int
+    sunscreen_reapply_min: int
+    extra_notes: list[str]
+
+
+class NutritionOut(BaseModel):
+    hydration: HydrationTipOut
+    macros: MacroTipOut
+    environment: EnvironmentTipOut
+    expert_cta: str  # texto del CTA para futura cita con nutricionista
+    citation: str = "ACSM Joint Position Statement (2007) · Burke (2007) Sports Nutr Series"
 
 
 class ReportOut(BaseModel):
@@ -154,8 +202,8 @@ class ReportOut(BaseModel):
     load: LoadOut
     gates: list[GateOut]
     interpretation: list[str] = Field(default_factory=list)
-    recommendation: str
-    insights: InsightsOut | None = None  # nuevo — diferencial científico
+    insights: InsightsOut | None = None  # diferencial científico
+    nutrition: NutritionOut | None = None  # diferencial: nutrición + monetización Luz Dálida
 
 
 # ─── Helpers ─────────────────────────────────────────────
@@ -334,9 +382,85 @@ def _build_today_action(
     hrv_baseline: float | None,
     hrv_sd: float = 4.7,
 ) -> TodayActionOut:
-    """Combina ACWR + HRV + actividades del día + plan semanal → recomendación inequívoca."""
+    """Combina ACWR + HRV + actividades del día + plan semanal → recomendación inequívoca.
+
+    Soporta vista de hoy / pasado / futuro:
+    - pasado → análisis retrospectivo (ejecutado / descanso programado / no realizado)
+    - futuro → planificado
+    - hoy → lógica completa con heurística de carga
+    """
     weekday = target.weekday()  # 0=lun, 6=dom
     planned_status, planned_session = WEEKDAY_PLAN[weekday]
+    today_real = DateT.today()
+    day_names = ["lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo"]
+
+    # ─── PASADO ─────────────────────────────────────────────
+    if target < today_real:
+        date_label = day_names[weekday] + " " + target.strftime("%d %b").lower()
+        if activities_today:
+            labels = ", ".join(a.label.split(" · ")[0] for a in activities_today[:3])
+            return TodayActionOut(
+                status="past_executed",
+                temporal="past",
+                headline=f"EJECUTADO ✓",
+                short_reason=f"{date_label}: {len(activities_today)} sesión{'es' if len(activities_today) > 1 else ''} registrada{'s' if len(activities_today) > 1 else ''} — {labels}.",
+                reasons=[
+                    f"Plan original del día: {planned_session}",
+                    "Ver detalle en sección de entrenos del día abajo",
+                ],
+                allowed=[],
+                next_session="",
+            )
+        if planned_status == "rest":
+            return TodayActionOut(
+                status="past_rest_planned",
+                temporal="past",
+                headline="DESCANSO PROGRAMADO ✓",
+                short_reason=f"{date_label}: día de descanso del plan semanal.",
+                reasons=["No requería actividad — recuperación parte del plan polarizado"],
+                allowed=[],
+                next_session="",
+            )
+        return TodayActionOut(
+            status="past_missed",
+            temporal="past",
+            headline="SESIÓN NO REALIZADA",
+            short_reason=f"{date_label}: planificada {planned_session.lower()} pero sin registro.",
+            reasons=[
+                f"Plan original del día: {planned_session}",
+                "Saltarse sesiones programadas afecta el ACWR y rompe el ritmo de adaptación",
+            ],
+            allowed=[],
+            next_session="",
+        )
+
+    # ─── FUTURO ─────────────────────────────────────────────
+    if target > today_real:
+        date_label = day_names[weekday] + " " + target.strftime("%d %b").lower()
+        if planned_status == "rest":
+            return TodayActionOut(
+                status="future_planned",
+                temporal="future",
+                headline="DESCANSO PLANIFICADO",
+                short_reason=f"{date_label}: día de descanso del plan semanal.",
+                reasons=["Recuperación programada — sin sesión prevista"],
+                allowed=[],
+                next_session="",
+            )
+        return TodayActionOut(
+            status="future_planned",
+            temporal="future",
+            headline=f"PLANIFICADO: {planned_session}",
+            short_reason=f"{date_label}: sesión prevista del plan polarizado.",
+            reasons=[
+                f"Plan semanal de ese día: {planned_session}",
+                "La recomendación final dependerá de HRV/ACWR esa mañana",
+            ],
+            allowed=[],
+            next_session="",
+        )
+
+    # ─── HOY (lógica original) ───────────────────────────────
 
     # Próxima sesión (día siguiente que toque entrenar)
     next_session = ""
@@ -344,7 +468,6 @@ def _build_today_action(
         d = target + timedelta(days=offset)
         st, sess = WEEKDAY_PLAN[d.weekday()]
         if st == "train":
-            day_names = ["lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo"]
             label = "Mañana" if offset == 1 else day_names[d.weekday()].capitalize()
             next_session = f"{label}: {sess}"
             break
@@ -354,6 +477,7 @@ def _build_today_action(
         labels = ", ".join(a.label.split(" · ")[0] for a in activities_today[:3])
         return TodayActionOut(
             status="trained_already",
+            temporal="today",
             headline="HOY YA ENTRENASTE",
             short_reason=f"{len(activities_today)} sesión{'es' if len(activities_today) > 1 else ''} registrada{'s' if len(activities_today) > 1 else ''}: {labels}.",
             reasons=[
@@ -386,6 +510,7 @@ def _build_today_action(
     if suppressed_hrv:
         return TodayActionOut(
             status="rest",
+            temporal="today",
             headline="DESCANSA HOY",
             short_reason=f"Tu HRV ({hrv_today:.0f} ms) está suprimido vs baseline ({hrv_baseline:.0f}). Sistema nervioso pidiendo recuperación.",
             reasons=[
@@ -404,6 +529,7 @@ def _build_today_action(
     if high_acwr and planned_status == "train":
         return TodayActionOut(
             status="active_recovery",
+            temporal="today",
             headline="RECUPERACIÓN ACTIVA HOY",
             short_reason=f"Tu ACWR ({acwr:.2f}) está sobre el umbral seguro (1.3). Carga aguda muy por encima de la crónica.",
             reasons=[
@@ -434,6 +560,7 @@ def _build_today_action(
             extra.append("Tu plan polarizado contempla este descanso — sin descanso no hay adaptación")
         return TodayActionOut(
             status="rest",
+            temporal="today",
             headline="DESCANSA HOY",
             short_reason="Día de descanso programado por el plan semanal.",
             reasons=extra,
@@ -448,6 +575,7 @@ def _build_today_action(
     # Caso 5: día normal de entrenamiento, sin alertas
     return TodayActionOut(
         status="train",
+        temporal="today",
         headline=f"ENTRENA HOY: {planned_session}",
         short_reason="Día de entrenamiento programado y sin contraindicaciones (ACWR y HRV en rango).",
         reasons=[
@@ -461,6 +589,143 @@ def _build_today_action(
             "Hidratación + 30g de carbohidratos pre-sesión si vas a Z3+",
         ],
         next_session=next_session,
+    )
+
+
+# ─── Nutrición e hidratación ────────────────────────────────
+
+
+def _build_nutrition(
+    weight_kg: float,
+    activities_today: list,
+    latest_activity: dict | None,
+    altitude_msnm: int = 1736,
+    is_today: bool = True,
+) -> NutritionOut:
+    """Cálculos automáticos basados en peso, actividad y clima.
+
+    Base: ACSM Joint Position Statement 2007 + Burke (2007) Sports Nutrition Series.
+    """
+    # ── Hidratación base: ~35 ml/kg/día + extra por sesión ─────
+    base_ml = int(weight_kg * 35)
+    extra_ml = 0
+    duration_min = 0
+    high_intensity = False
+
+    if latest_activity and is_today:
+        duration_min = (latest_activity.get("duration_secs") or 0) / 60
+        zones = latest_activity.get("zone_distribution_pct") or []
+        if zones and len(zones) >= 5:
+            high_intensity = (zones[3] + zones[4]) > 15
+        # ~500-800 ml por hora de actividad moderada, hasta 1L en intensa
+        per_hour = 700 if high_intensity else 500
+        extra_ml = int(duration_min / 60 * per_hour)
+
+    total_ml = base_ml + extra_ml
+    electrolytes = high_intensity or duration_min > 60 or altitude_msnm > 1500
+
+    hydration_notes = [
+        f"Base: {base_ml} ml (~35 ml × {weight_kg:.0f} kg)",
+    ]
+    if extra_ml > 0:
+        hydration_notes.append(
+            f"+{extra_ml} ml por sesión de {duration_min:.0f} min ({'alta' if high_intensity else 'moderada'} intensidad)"
+        )
+    if electrolytes:
+        hydration_notes.append(
+            "Necesitas electrolitos (sodio/potasio): sesión larga, intensa o en altitud"
+        )
+    if altitude_msnm > 1500:
+        hydration_notes.append(
+            f"Altitud {altitude_msnm} msnm aumenta pérdida de agua por respiración — +300-500 ml/día extra"
+        )
+
+    pre_ml = int(min(500, total_ml * 0.15))
+    during_ml_h = 600 if high_intensity else 400 if duration_min > 0 else 0
+    post_ml = int(extra_ml * 1.5) if extra_ml else 0
+
+    hydration = HydrationTipOut(
+        water_ml=total_ml,
+        electrolytes_needed=electrolytes,
+        pre_session_ml=pre_ml,
+        during_session_ml_per_hour=during_ml_h,
+        post_session_ml=post_ml,
+        notes=hydration_notes,
+    )
+
+    # ── Macros: estimación según fase del día ────────────────
+    # Carga: día de entreno duro / Recuperación: post sesión / Mantenimiento: resto
+    if activities_today and high_intensity:
+        fase = "carga"
+        carbs_per_kg = 6
+        protein_per_kg = 1.6
+        fat_g = int(weight_kg * 1.0)
+        timing = [
+            "Pre-sesión (2-3h antes): 80-120g carbs + 20g proteína",
+            "Durante (>60min): 30-60g carbs/hora (gel o bebida)",
+            "Post-sesión (30 min): 1g carbs/kg + 20-25g proteína",
+        ]
+    elif activities_today:
+        fase = "recuperación"
+        carbs_per_kg = 5
+        protein_per_kg = 1.6
+        fat_g = int(weight_kg * 1.0)
+        timing = [
+            "Post-sesión inmediato: 25-30g proteína (síntesis muscular)",
+            "Carbs distribuidos en 3-4 comidas para reponer glucógeno",
+        ]
+    else:
+        fase = "mantenimiento"
+        carbs_per_kg = 4
+        protein_per_kg = 1.4
+        fat_g = int(weight_kg * 1.0)
+        timing = [
+            "Día de descanso: foco en proteína para reparación muscular",
+            "Carbs moderados — el músculo absorbe mejor en próximo entreno",
+        ]
+
+    carbs_g = int(weight_kg * carbs_per_kg)
+    protein_g = int(weight_kg * protein_per_kg)
+    kcal = carbs_g * 4 + protein_g * 4 + fat_g * 9
+
+    macros = MacroTipOut(
+        fase=fase,
+        kcal_estimadas=kcal,
+        carbs_g=carbs_g,
+        protein_g=protein_g,
+        fat_g=fat_g,
+        timing_notes=timing,
+    )
+
+    # ── Factor ambiental: bloqueador solar + altitud ─────────
+    # UV aumenta ~10% por cada 1000m de altitud
+    sun_intensity = "alta" if altitude_msnm > 1500 else "media"
+    spf = 50 if altitude_msnm > 1500 else 30
+    extra_env = [
+        f"Altitud {altitude_msnm} msnm: UV ~{int((altitude_msnm/1000)*10)}% más fuerte que a nivel del mar",
+    ]
+    if activities_today:
+        extra_env.append("Aplicar bloqueador 20 min antes del entreno; reaplicar tras sudar")
+    extra_env.append("Labios secos / boca pastosa son señal tardía de deshidratación — actúa antes")
+
+    environment = EnvironmentTipOut(
+        altitude_msnm=altitude_msnm,
+        sun_intensity=sun_intensity,
+        sunscreen_spf=spf,
+        sunscreen_reapply_min=80,
+        extra_notes=extra_env,
+    )
+
+    expert_cta = (
+        "¿Quieres un plan personalizado por una nutricionista deportiva? "
+        "Próximamente: consulta con Luz Dálida, atleta y profesora de nutrición."
+    )
+
+    return NutritionOut(
+        hydration=hydration,
+        macros=macros,
+        environment=environment,
+        expert_cta=expert_cta,
     )
 
 
@@ -726,19 +991,7 @@ def get_report(
     if not interp:
         interp.append("Día sin señales fuera de patrón. Mantener el plan.")
 
-    # 7. Recomendación
-    if hrv_today and baseline and hrv_today < baseline - 4.7:
-        recommendation = (
-            "**Día suave / descanso activo.** HRV suprimido sugiere recuperación. "
-            "Movilidad + caminata ligera 30 min o descanso total."
-        )
-    elif activities_out:
-        recommendation = (
-            "**Fuerza B + movilidad** para mañana. Hoy hubo cardio, "
-            "toca trabajo neuromuscular complementario."
-        )
-    else:
-        recommendation = "**Caminata Z2 50-60 min** — patrón base de la semana."
+    # 7. (Recomendación textual eliminada — la fuente única ahora es today_action más abajo)
 
     # 9. Insights científicos (diferencial Liebre)
     insights: InsightsOut | None = None
@@ -750,13 +1003,24 @@ def get_report(
             polarization=_build_polarization(latest),
         )
 
-    # 10. Today action — recomendación inequívoca para HOY
+    # 10. Today action — recomendación inequívoca (contextual a la fecha)
     today_action = _build_today_action(
         target=target,
         activities_today=activities_out,
         acwr=acwr_val,
         hrv_today=hrv_today,
         hrv_baseline=baseline,
+    )
+
+    # 11. Nutrición e hidratación (factor ambiental + diferencial)
+    is_today = target == DateT.today()
+    weight = float(profile.weight_kg) if profile and profile.weight_kg else 68.0
+    nutrition = _build_nutrition(
+        weight_kg=weight,
+        activities_today=activities_out,
+        latest_activity=latest if (activities_out and latest) else None,
+        altitude_msnm=1736,  # Popayán; en futuro: leer de perfil
+        is_today=is_today,
     )
 
     return ReportOut(
@@ -768,6 +1032,6 @@ def get_report(
         load=load,
         gates=gates,
         interpretation=interp,
-        recommendation=recommendation,
         insights=insights,
+        nutrition=nutrition,
     )

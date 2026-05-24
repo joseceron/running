@@ -3,6 +3,7 @@ import { Sidebar } from "@/components/dashboard/Sidebar";
 import { TopBar } from "@/components/dashboard/TopBar";
 import { InsightSection } from "@/components/dashboard/InsightCards";
 import { TodayActionCard } from "@/components/dashboard/TodayActionCard";
+import { NutritionCard } from "@/components/dashboard/NutritionCard";
 
 export const dynamic = "force-dynamic";
 
@@ -73,6 +74,9 @@ export default async function ReportPage({
 
           {/* INSIGHTS CIENTÍFICOS — diferencial Liebre */}
           <InsightSection insights={report.insights} />
+
+          {/* NUTRICIÓN — diferencial + base monetización Luz Dálida */}
+          {report.nutrition && <NutritionCard data={report.nutrition} />}
 
           {/* 1. Entrenos del día */}
           <Section number={1} title="Entrenos del día">
@@ -294,19 +298,6 @@ export default async function ReportPage({
                 </li>
               ))}
             </ul>
-          </Section>
-
-          {/* 8. Recomendación */}
-          <Section number={8} title="Recomendación para mañana">
-            <p
-              className="text-sm text-ink-primary leading-relaxed"
-              dangerouslySetInnerHTML={{
-                __html: report.recommendation.replace(
-                  /\*\*(.+?)\*\*/g,
-                  "<strong>$1</strong>"
-                ),
-              }}
-            />
           </Section>
 
           <footer className="mt-10 pt-6 border-t border-rule/30">

@@ -9,30 +9,68 @@
 
 import type { TodayAction } from "@/lib/api";
 
-const STYLE: Record<TodayAction["status"], { bg: string; tag: string; tagBg: string; emoji: string }> = {
+const STYLE: Record<
+  TodayAction["status"],
+  { bg: string; tag: string; tagBg: string; emoji: string; chip: string }
+> = {
+  // HOY
   rest: {
     bg: "linear-gradient(135deg, #18a957 0%, #138842 100%)",
     tag: "DESCANSO",
     tagBg: "rgba(255,255,255,0.18)",
     emoji: "🛌",
+    chip: "Hoy",
   },
   active_recovery: {
     bg: "linear-gradient(135deg, #d29400 0%, #a87500 100%)",
     tag: "RECUPERACIÓN ACTIVA",
     tagBg: "rgba(255,255,255,0.18)",
     emoji: "🧘",
+    chip: "Hoy",
   },
   train: {
     bg: "linear-gradient(135deg, #1976d2 0%, #115293 100%)",
     tag: "ENTRENAR",
     tagBg: "rgba(255,255,255,0.18)",
     emoji: "🏃",
+    chip: "Hoy",
   },
   trained_already: {
     bg: "linear-gradient(135deg, #2e7eb8 0%, #1e5a8a 100%)",
     tag: "YA ENTRENASTE",
     tagBg: "rgba(255,255,255,0.18)",
     emoji: "✅",
+    chip: "Hoy",
+  },
+  // PASADO
+  past_executed: {
+    bg: "linear-gradient(135deg, #2d3748 0%, #1a202c 100%)",
+    tag: "EJECUTADO",
+    tagBg: "rgba(24,169,87,0.45)",
+    emoji: "✓",
+    chip: "Historial",
+  },
+  past_rest_planned: {
+    bg: "linear-gradient(135deg, #2d3748 0%, #1a202c 100%)",
+    tag: "DESCANSO PROGRAMADO",
+    tagBg: "rgba(255,255,255,0.16)",
+    emoji: "🛌",
+    chip: "Historial",
+  },
+  past_missed: {
+    bg: "linear-gradient(135deg, #4a5568 0%, #2d3748 100%)",
+    tag: "NO REALIZADO",
+    tagBg: "rgba(217,47,49,0.55)",
+    emoji: "○",
+    chip: "Historial",
+  },
+  // FUTURO
+  future_planned: {
+    bg: "linear-gradient(135deg, #5a7fa3 0%, #3d5a78 100%)",
+    tag: "PLANIFICADO",
+    tagBg: "rgba(255,255,255,0.18)",
+    emoji: "📅",
+    chip: "Próximo",
   },
 };
 
@@ -50,7 +88,7 @@ export function TodayActionCard({ action }: { action: TodayAction }) {
           className="text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded"
           style={{ background: s.tagBg }}
         >
-          Hoy · {s.tag}
+          {s.chip} · {s.tag}
         </span>
         <span className="text-2xl leading-none" aria-hidden>
           {s.emoji}
@@ -87,8 +125,8 @@ export function TodayActionCard({ action }: { action: TodayAction }) {
         </ul>
       </div>
 
-      {/* Permitido (qué SÍ puedes hacer) */}
-      {action.allowed.length > 0 && (
+      {/* Permitido (qué SÍ puedes hacer) — sólo para vistas de HOY */}
+      {action.temporal === "today" && action.allowed.length > 0 && (
         <div className="px-5 mt-4">
           <p
             className="text-[10px] font-semibold uppercase tracking-widest opacity-80 mb-1.5"
