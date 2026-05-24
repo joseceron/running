@@ -150,6 +150,29 @@ def get_report(
             is_walk=is_walk,
         )
 
+    # Fallback: si cronología no trajo actividades pero la última actividad
+    # cacheada es del día solicitado, agregarla. Cubre el caso de Garmin
+    # devolviendo BB/stress vacíos pero sí tener la actividad.
+    if not activities_out and latest:
+        started = latest.get("started_at") or ""
+        if started.startswith(target.isoformat()):
+            try:
+                hour_part = started[11:19]  # HH:MM:SS
+                h, m, s = (int(x) for x in hour_part.split(":"))
+                hour_f = h + m / 60 + s / 3600
+            except Exception:
+                hour_f = 0
+            dist_km = latest.get("distance_km") or 0
+            name = latest.get("name") or "Actividad"
+            label = f"{name} · {dist_km:.2f} km" if dist_km else name
+            activities_out.append(
+                ActivityTodayOut(
+                    hour=round(hour_f, 3),
+                    label=label,
+                    type=latest.get("type") or "run",
+                )
+            )
+
     # 3. Heart
     profile = runner_profile.get(db, user_id)
     rhr_base = float(profile.resting_hr or 50.5) if profile else 50.5

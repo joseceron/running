@@ -164,9 +164,17 @@ def _sync_cronologia(client: GarminConnectClient, user_id: str) -> bool:
     except Exception as exc:
         print(f"⚠️  Activities markers fallaron: {exc}")
 
-    if not points:
-        print("⚠️  Sin puntos de cronología — cache no generado")
+    # Si no hay puntos de cronología (BB/stress vacíos) pero SÍ hay activities,
+    # guardamos un cache mínimo para que /report y la UI puedan leer las actividades.
+    if not points and not activities_markers:
+        print("⚠️  Sin puntos ni actividades — cache no generado")
         return False
+
+    if not points:
+        print(
+            f"⚠️  Sin puntos de cronología (BB/stress vacíos) — guardando cache "
+            f"con {len(activities_markers)} actividad(es) únicamente"
+        )
 
     # Summary
     bb_values = [p["body_battery"] for p in points if p["body_battery"] is not None]
