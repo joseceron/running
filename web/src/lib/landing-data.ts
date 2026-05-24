@@ -29,10 +29,10 @@ export function moduleAccent(n: number): { accent: string; icon: string } {
 }
 
 export const HERO_STATS = [
-  { value: "8", label: "Módulos de análisis" },
-  { value: "40+", label: "Papers científicos integrados" },
-  { value: "0", label: "Valores poblacionales genéricos" },
-  { value: "100%", label: "Baseline personal del corredor" },
+  { value: "−33%", label: "Z4 corregida en 1 semana", note: "caso real" },
+  { value: "14", label: "noches para tu baseline HRV", note: "personal, no poblacional" },
+  { value: "40+", label: "papers Scopus + Web of Science", note: "con cita y nivel" },
+  { value: "8", label: "módulos cruzando tus datos", note: "biomecánica · fatiga · plan" },
 ] as const;
 
 export const PAIN_POINTS = [

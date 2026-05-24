@@ -159,128 +159,369 @@ export default function HomePage() {
           />
         ))}
 
-        <div className="max-w-5xl mx-auto px-4 md:px-8 py-20 md:py-32 text-center relative">
-          <div className="flex flex-wrap items-center justify-center gap-2 mb-6">
-            <span
-              style={{
-                display: "inline-block",
-                fontSize: 11,
-                textTransform: "uppercase",
-                letterSpacing: "0.2em",
-                color: C.accent,
-                background: C.accentSoft,
-                border: `1px solid rgba(47,129,247,0.27)`,
-                padding: "5px 14px",
-                borderRadius: 20,
-                fontWeight: 600,
-              }}
-            >
-              Inteligencia artificial para corredores
-            </span>
-            <span
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 6,
-                fontSize: 11,
-                fontWeight: 600,
-                color: C.green,
-                background: "rgba(63,185,80,0.12)",
-                border: "1px solid rgba(63,185,80,0.32)",
-                padding: "5px 12px",
-                borderRadius: 20,
-              }}
-            >
-              ⌚ Sincroniza con Garmin
-            </span>
+        <div className="max-w-6xl mx-auto px-4 md:px-8 py-16 md:py-28 relative">
+          <div className="grid lg:grid-cols-[1.05fr_1fr] gap-12 lg:gap-16 items-center">
+            {/* ────── Columna izquierda: copy + CTAs ────── */}
+            <div className="text-center lg:text-left">
+              {/* Eyebrow único con beta + indicador live */}
+              <div className="flex flex-wrap items-center justify-center lg:justify-start gap-2 mb-6 liebre-reveal" style={{ animationDelay: "0.05s" }}>
+                <span
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 8,
+                    fontSize: 11,
+                    fontWeight: 700,
+                    letterSpacing: "0.18em",
+                    textTransform: "uppercase",
+                    color: C.accent,
+                    background: C.accentSoft,
+                    border: `1px solid rgba(47,129,247,0.32)`,
+                    padding: "6px 14px",
+                    borderRadius: 999,
+                  }}
+                >
+                  <span className="liebre-live-dot" aria-hidden />
+                  Beta abierta · 100 corredores gratis
+                </span>
+                <span
+                  style={{
+                    fontSize: 11,
+                    fontWeight: 600,
+                    color: C.textDim,
+                    letterSpacing: "0.04em",
+                  }}
+                >
+                  🇨🇴 hecho en Colombia
+                </span>
+              </div>
+
+              {/* Headline — directo, con keyword highlight controlado */}
+              <h1
+                className="liebre-reveal"
+                style={{
+                  fontSize: "clamp(38px, 5.6vw, 68px)",
+                  fontWeight: 800,
+                  lineHeight: 1.04,
+                  letterSpacing: "-0.025em",
+                  margin: "0 0 22px",
+                  color: C.text,
+                  animationDelay: "0.15s",
+                }}
+              >
+                Tu Garmin mide.
+                <br />
+                Liebre te dice{" "}
+                <span
+                  style={{
+                    background: `linear-gradient(120deg, ${C.accent} 0%, #79c0ff 100%)`,
+                    WebkitBackgroundClip: "text",
+                    WebkitTextFillColor: "transparent",
+                    backgroundClip: "text",
+                    position: "relative",
+                  }}
+                >
+                  qué hacer mañana
+                </span>
+                .
+              </h1>
+
+              {/* Subheadline con dato concreto (proof embebido) */}
+              <p
+                className="liebre-reveal"
+                style={{
+                  fontSize: 18,
+                  color: C.textMuted,
+                  maxWidth: 560,
+                  margin: "0 auto 28px",
+                  lineHeight: 1.65,
+                  animationDelay: "0.25s",
+                }}
+              >
+                Tu reloj registra HRV, biomecánica y carga. Liebre los cruza con{" "}
+                <span style={{ color: C.text, fontWeight: 600 }}>
+                  40+ papers de Scopus y Web of Science
+                </span>
+                , construye tu baseline en 14 noches y ajusta tu plan{" "}
+                <span style={{ color: C.text, fontWeight: 600 }}>
+                  semana a semana
+                </span>
+                .
+              </p>
+
+              {/* CTAs primario + secundario */}
+              <div className="flex flex-wrap gap-3 justify-center lg:justify-start mb-3 liebre-reveal" style={{ animationDelay: "0.35s" }}>
+                <Link
+                  href="/dashboard"
+                  className="liebre-shimmer liebre-lift"
+                  style={{
+                    background: C.accent,
+                    color: "#fff",
+                    fontWeight: 700,
+                    fontSize: 14,
+                    padding: "14px 28px",
+                    borderRadius: 8,
+                    textDecoration: "none",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 8,
+                    boxShadow: "0 8px 24px rgba(47,129,247,0.45)",
+                  }}
+                >
+                  Conectar mi Garmin gratis
+                  <span aria-hidden style={{ fontSize: 16 }}>→</span>
+                </Link>
+                <a
+                  href="#datos-reales"
+                  className="liebre-lift"
+                  style={{
+                    background: "rgba(13,17,23,0.6)",
+                    backdropFilter: "blur(8px)",
+                    color: C.text,
+                    fontWeight: 600,
+                    fontSize: 14,
+                    padding: "14px 26px",
+                    borderRadius: 8,
+                    border: `1px solid ${C.border}`,
+                    textDecoration: "none",
+                    display: "inline-block",
+                  }}
+                >
+                  Ver análisis real ↓
+                </a>
+              </div>
+
+              {/* Microcopy de confianza bajo CTA */}
+              <p
+                className="liebre-reveal"
+                style={{
+                  fontSize: 12,
+                  color: C.textDim,
+                  marginBottom: 28,
+                  lineHeight: 1.5,
+                  animationDelay: "0.42s",
+                }}
+              >
+                Sin tarjeta · Setup en 2 min · Tus datos cifrados y solo tuyos
+              </p>
+
+              {/* Trust strip — "Conecta con" + wordmarks de confianza */}
+              <div
+                className="flex flex-wrap items-center justify-center lg:justify-start gap-x-5 gap-y-2 liebre-reveal"
+                style={{
+                  paddingTop: 22,
+                  borderTop: `1px solid ${C.borderSoft}`,
+                  animationDelay: "0.5s",
+                }}
+              >
+                <span
+                  style={{
+                    fontSize: 10,
+                    textTransform: "uppercase",
+                    letterSpacing: "0.15em",
+                    color: C.textDim,
+                    fontWeight: 600,
+                  }}
+                >
+                  Funciona con
+                </span>
+                <span className="liebre-trust-logo">GARMIN</span>
+                <span className="liebre-trust-logo">ANTHROPIC</span>
+                <span className="liebre-trust-logo">SCOPUS</span>
+                <span className="liebre-trust-logo">WEB OF SCIENCE</span>
+              </div>
+            </div>
+
+            {/* ────── Columna derecha: product preview con annotated callouts ────── */}
+            <div className="relative liebre-reveal-right hidden lg:block" style={{ animationDelay: "0.4s" }}>
+              <div className="liebre-mockwin">
+                {/* Browser bar */}
+                <div className="liebre-mockwin-bar">
+                  <span className="liebre-mockwin-dot" style={{ background: "#ff7b72" }} />
+                  <span className="liebre-mockwin-dot" style={{ background: "#e3b341" }} />
+                  <span className="liebre-mockwin-dot" style={{ background: "#3fb950" }} />
+                  <span
+                    style={{
+                      marginLeft: 10,
+                      fontSize: 11,
+                      color: C.textDim,
+                      fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
+                    }}
+                  >
+                    liebre.app/dashboard
+                  </span>
+                </div>
+
+                {/* Contenido del mockup — diagnóstico diario */}
+                <div style={{ padding: 22 }}>
+                  {/* Header con avatar + status live */}
+                  <div className="flex items-center gap-3 mb-5">
+                    <div
+                      style={{
+                        width: 36,
+                        height: 36,
+                        borderRadius: "50%",
+                        background: "linear-gradient(135deg, #2f81f7, #a5a0ff)",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        color: "#fff",
+                        fontWeight: 700,
+                        fontSize: 13,
+                      }}
+                    >
+                      JC
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <p style={{ fontSize: 12, color: C.text, fontWeight: 600 }}>
+                        Hola, José
+                      </p>
+                      <p
+                        className="liebre-typing-dots"
+                        style={{ fontSize: 10, color: C.textMuted, display: "flex", alignItems: "center", gap: 6 }}
+                      >
+                        Analizando tu noche
+                        <span /><span /><span />
+                      </p>
+                    </div>
+                    <span
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 5,
+                        fontSize: 9,
+                        fontWeight: 700,
+                        textTransform: "uppercase",
+                        letterSpacing: "0.1em",
+                        color: C.green,
+                        background: "rgba(63,185,80,0.12)",
+                        padding: "3px 8px",
+                        borderRadius: 999,
+                        border: "1px solid rgba(63,185,80,0.3)",
+                      }}
+                    >
+                      <span className="liebre-live-dot" style={{ width: 6, height: 6 }} />
+                      LIVE
+                    </span>
+                  </div>
+
+                  {/* Recomendación del día */}
+                  <div
+                    style={{
+                      background: "rgba(47,129,247,0.08)",
+                      border: "1px solid rgba(47,129,247,0.25)",
+                      borderRadius: 10,
+                      padding: "12px 14px",
+                      marginBottom: 14,
+                    }}
+                  >
+                    <p
+                      style={{
+                        fontSize: 10,
+                        fontWeight: 700,
+                        letterSpacing: "0.12em",
+                        textTransform: "uppercase",
+                        color: C.accent,
+                        marginBottom: 4,
+                      }}
+                    >
+                      Recomendación de hoy
+                    </p>
+                    <p style={{ fontSize: 13, color: C.text, lineHeight: 1.5, fontWeight: 600 }}>
+                      Rodaje suave 45&apos; · Z2 (7:00–8:30/km)
+                    </p>
+                    <p style={{ fontSize: 11, color: C.textMuted, lineHeight: 1.5, marginTop: 4 }}>
+                      HRV −12% vs tu baseline. Hoy no es día de calidad.
+                    </p>
+                  </div>
+
+                  {/* Mini grid de métricas */}
+                  <div className="grid grid-cols-3 gap-2 mb-3">
+                    <MockMetric label="HRV" value="38" delta="−12%" color={C.red} />
+                    <MockMetric label="ACWR" value="1.18" delta="ok" color={C.green} />
+                    <MockMetric label="Z4 sem." value="0.6%" delta="↓33%" color={C.green} />
+                  </div>
+
+                  {/* Cita científica */}
+                  <div
+                    style={{
+                      background: C.surface,
+                      border: `1px solid ${C.borderSoft}`,
+                      borderRadius: 8,
+                      padding: "10px 12px",
+                      fontSize: 10.5,
+                      color: C.textMuted,
+                      lineHeight: 1.5,
+                    }}
+                  >
+                    <span style={{ color: C.yellow }}>★★★</span> Buchheit et&nbsp;al. (2014) ·{" "}
+                    <span style={{ color: C.text }}>Br J Sports Med</span> — meta-análisis HRV vs carga
+                  </div>
+                </div>
+              </div>
+
+              {/* Callouts flotantes anotados sobre el mockup */}
+              <div
+                className="liebre-float-slow"
+                style={{
+                  position: "absolute",
+                  top: -14,
+                  right: -18,
+                  background: C.surface2,
+                  border: `1px solid ${C.green}`,
+                  borderRadius: 10,
+                  padding: "8px 12px",
+                  fontSize: 11,
+                  color: C.text,
+                  fontWeight: 600,
+                  boxShadow: `0 10px 30px rgba(63,185,80,0.25)`,
+                  whiteSpace: "nowrap",
+                }}
+              >
+                <span style={{ color: C.green }}>✓</span> Detectó inversión Z4→Z2
+              </div>
+              <div
+                className="liebre-float-slow"
+                style={{
+                  position: "absolute",
+                  bottom: 24,
+                  left: -22,
+                  background: C.surface2,
+                  border: `1px solid ${C.accent}`,
+                  borderRadius: 10,
+                  padding: "8px 12px",
+                  fontSize: 11,
+                  color: C.text,
+                  fontWeight: 600,
+                  boxShadow: `0 10px 30px rgba(47,129,247,0.25)`,
+                  whiteSpace: "nowrap",
+                  animationDelay: "1.2s",
+                }}
+              >
+                Cita con nivel de evidencia
+              </div>
+            </div>
           </div>
 
-          <h1
-            style={{
-              fontSize: "clamp(40px, 6.5vw, 72px)",
-              fontWeight: 800,
-              lineHeight: 1.06,
-              letterSpacing: "-0.02em",
-              maxWidth: 880,
-              margin: "0 auto 24px",
-              background: `linear-gradient(135deg, ${C.text} 30%, ${C.accent} 100%)`,
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-              backgroundClip: "text",
-            }}
+          {/* Stats — debajo del split, separados con border */}
+          <div
+            className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8 max-w-5xl mx-auto mt-16 md:mt-24 pt-10"
+            style={{ borderTop: `1px solid ${C.borderSoft}` }}
           >
-            Lo que Garmin ve.
-            <br />
-            Lo que un entrenador entiende.
-          </h1>
-
-          <p
-            style={{
-              fontSize: 18,
-              color: C.textMuted,
-              maxWidth: 620,
-              margin: "0 auto 40px",
-              lineHeight: 1.65,
-            }}
-          >
-            Garmin registra tus datos. Liebre los interpreta con evidencia
-            científica, construye tu perfil fisiológico personal y detecta lo
-            que el app nunca te va a decir.
-          </p>
-
-          <div className="flex flex-wrap gap-3 justify-center mb-16">
-            <Link
-              href="/dashboard"
-              className="liebre-shimmer liebre-lift"
-              style={{
-                background: C.accent,
-                color: "#fff",
-                fontWeight: 700,
-                fontSize: 14,
-                padding: "13px 28px",
-                borderRadius: 8,
-                textDecoration: "none",
-                display: "inline-block",
-                boxShadow: "0 4px 14px rgba(47,129,247,0.4)",
-              }}
-            >
-              Ver demo del dashboard →
-            </Link>
-            <a
-              href="#comparativa"
-              className="liebre-lift"
-              style={{
-                background: "rgba(13,17,23,0.6)",
-                backdropFilter: "blur(8px)",
-                color: C.text,
-                fontWeight: 600,
-                fontSize: 14,
-                padding: "13px 28px",
-                borderRadius: 8,
-                border: `1px solid ${C.border}`,
-                textDecoration: "none",
-                display: "inline-block",
-              }}
-            >
-              Comparar con Connect
-            </a>
-          </div>
-
-          {/* Stats con reveal animado */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-10 max-w-3xl mx-auto">
             {HERO_STATS.map((s, i) => (
               <div
                 key={s.label}
                 className="text-center liebre-reveal"
-                style={{ animationDelay: `${0.1 + i * 0.12}s` }}
+                style={{ animationDelay: `${0.6 + i * 0.1}s` }}
               >
                 <p
                   className="liebre-stat-num"
                   style={{
-                    fontSize: 42,
+                    fontSize: 38,
                     fontWeight: 800,
                     fontVariantNumeric: "tabular-nums",
                     letterSpacing: "-0.02em",
+                    lineHeight: 1.05,
                   }}
                 >
                   {s.value}
@@ -288,12 +529,23 @@ export default function HomePage() {
                 <p
                   style={{
                     fontSize: 12,
-                    color: C.textMuted,
-                    marginTop: 6,
-                    lineHeight: 1.4,
+                    color: C.text,
+                    fontWeight: 600,
+                    marginTop: 8,
+                    lineHeight: 1.35,
                   }}
                 >
                   {s.label}
+                </p>
+                <p
+                  style={{
+                    fontSize: 10.5,
+                    color: C.textDim,
+                    marginTop: 3,
+                    letterSpacing: "0.02em",
+                  }}
+                >
+                  {s.note}
                 </p>
               </div>
             ))}
@@ -819,7 +1071,7 @@ export default function HomePage() {
       </section>
 
       {/* ─────────────── DATOS REALES ─────────────── */}
-      <section style={{ background: C.bg, padding: "80px 0" }}>
+      <section id="datos-reales" style={{ background: C.bg, padding: "80px 0" }}>
         <div className="max-w-6xl mx-auto px-4 md:px-8">
           <div className="text-center mb-12">
             <p
@@ -1299,6 +1551,54 @@ function NavLink({
     >
       {children}
     </a>
+  );
+}
+
+function MockMetric({
+  label,
+  value,
+  delta,
+  color,
+}: {
+  label: string;
+  value: string;
+  delta: string;
+  color: string;
+}) {
+  return (
+    <div
+      style={{
+        background: C.surface,
+        border: `1px solid ${C.borderSoft}`,
+        borderRadius: 8,
+        padding: "8px 10px",
+      }}
+    >
+      <p
+        style={{
+          fontSize: 9,
+          textTransform: "uppercase",
+          letterSpacing: "0.1em",
+          color: C.textDim,
+          fontWeight: 600,
+          marginBottom: 2,
+        }}
+      >
+        {label}
+      </p>
+      <p
+        style={{
+          fontSize: 16,
+          fontWeight: 700,
+          color: C.text,
+          lineHeight: 1.1,
+          fontVariantNumeric: "tabular-nums",
+        }}
+      >
+        {value}
+      </p>
+      <p style={{ fontSize: 10, color, fontWeight: 600, marginTop: 1 }}>{delta}</p>
+    </div>
   );
 }
 
