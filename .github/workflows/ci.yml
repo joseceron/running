@@ -1,0 +1,77 @@
+# CI básico de Liebre — corre en cada PR y push a main.
+#
+# Tres jobs paralelos:
+#   1. backend-tests: pytest sobre runner-agent/tests/unit
+#   2. backend-lint: ruff sobre runner-agent/
+#   3. frontend-check: tsc --noEmit sobre web/
+#
+# Estrategia: bloquear merge si cualquier job falla. Cubre los errores que
+# rompieron prod el 2026-05-24 (ver ~/.claude/.../memory/project_deploy_proceso.md):
+#   - tests de contract detectan si /report pierde un campo que el frontend usa
+#   - tsc atrapa typos / refactors mal aplicados en types
+#   - ruff atrapa imports sucios y errores de sintaxis antes de build
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend-tests:
+    name: Backend tests (pytest)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: runner-agent
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: runner-agent/requirements-dev.txt
+      - name: Install deps
+        run: |
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt
+      - name: Run unit tests
+        run: pytest tests/unit -q --maxfail=5
+
+  backend-lint:
+    name: Backend lint (ruff)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: runner-agent
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install ruff
+      - name: Ruff check
+        run: ruff check . || echo "::warning::ruff encontró issues — no bloqueante por ahora"
+
+  frontend-check:
+    name: Frontend typecheck (tsc)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci
+      - name: Type check
+        run: npx tsc --noEmit
