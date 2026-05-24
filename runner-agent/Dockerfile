@@ -43,6 +43,7 @@ COPY api/        ./api/
 COPY agents/     ./agents/
 COPY data/       ./data/
 COPY memory/     ./memory/
+COPY security/   ./security/
 COPY scripts/    ./scripts/
 COPY alembic/    ./alembic/
 COPY alembic.ini ./
