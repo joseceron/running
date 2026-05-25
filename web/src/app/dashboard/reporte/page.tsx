@@ -1,9 +1,7 @@
 import { liebreApiServer } from "@/lib/api-server";
 import { Sidebar } from "@/components/dashboard/Sidebar";
 import { TopBar } from "@/components/dashboard/TopBar";
-import { InsightSection } from "@/components/dashboard/InsightCards";
 import { TodayActionCard } from "@/components/dashboard/TodayActionCard";
-import { NutritionCard } from "@/components/dashboard/NutritionCard";
 
 export const dynamic = "force-dynamic";
 
@@ -72,11 +70,9 @@ export default async function ReportPage({
             <TodayActionCard action={report.today_action} />
           </div>
 
-          {/* INSIGHTS CIENTÍFICOS — diferencial Liebre */}
-          <InsightSection insights={report.insights} />
-
-          {/* NUTRICIÓN — diferencial + base monetización Luz Dálida */}
-          {report.nutrition && <NutritionCard data={report.nutrition} />}
+          {/* Nota: Insights científicos y Nutrición viven en /dashboard (Inicio).
+              Esta página es la vista profunda tipo Connect — 8 secciones técnicas
+              + gates, sin duplicar la capa de interpretación que ya está en Inicio. */}
 
           {/* 1. Entrenos del día */}
           <Section number={1} title="Entrenos del día">
