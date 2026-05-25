@@ -14,6 +14,7 @@ from sqlalchemy.orm import Session
 from agents.diagnostic_v2 import generate_diagnosis
 from api.deps import get_current_user_id, get_db
 from api.schemas.dashboard import DiagnosisOut
+from api.utils.timezone import local_today
 
 logger = logging.getLogger(__name__)
 
@@ -33,7 +34,7 @@ def get_diagnosis(
     user_id: str = Depends(get_current_user_id),
     db: Session = Depends(get_db),
 ) -> DiagnosisOut:
-    target = date or DateT.today()
+    target = date or local_today()
     target_iso = target.isoformat()
     cache_key = (user_id, target_iso)
 
@@ -70,6 +71,6 @@ def refresh_diagnosis(
     user_id: str = Depends(get_current_user_id),
     db: Session = Depends(get_db),
 ) -> DiagnosisOut:
-    target = date or DateT.today()
+    target = date or local_today()
     _cache.pop((user_id, target.isoformat()), None)
     return get_diagnosis(date=target, user_id=user_id, db=db)

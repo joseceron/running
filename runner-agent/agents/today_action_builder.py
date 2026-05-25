@@ -18,6 +18,8 @@ from __future__ import annotations
 from datetime import date as DateT, timedelta
 from typing import TypedDict
 
+from api.utils.timezone import local_today
+
 
 # Plan semanal genérico (polarizado 80/20 aeróbico, neutro a cualquier corredor).
 # 0 = lunes, 6 = domingo. Cada user puede sobreescribir esto desde
@@ -90,7 +92,7 @@ def build_today_action(
     plan = _coerce_plan(weekday_plan)
     weekday = target.weekday()
     planned_status, planned_session = plan[weekday]
-    today_real = DateT.today()
+    today_real = local_today()
 
     # ─── PASADO ─────────────────────────────────────────────
     if target < today_real:

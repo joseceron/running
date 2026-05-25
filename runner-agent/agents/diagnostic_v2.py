@@ -19,6 +19,7 @@ from dotenv import load_dotenv
 from sqlalchemy.orm import Session
 
 from agents.today_action_builder import build_today_action
+from api.utils.timezone import local_today
 from memory.repositories import hrv as hrv_repo
 from memory.repositories import runner_profile, weekly as weekly_repo
 
@@ -160,7 +161,7 @@ def _build_user_message(
     if profile is None:
         raise LookupError(f"Perfil no encontrado para user_id={user_id}")
 
-    target = target_date or date.today()
+    target = target_date or local_today()
 
     baseline = hrv_repo.get_baseline(session, user_id)
     days_recorded, days_required = hrv_repo.get_baseline_progress(session, user_id)

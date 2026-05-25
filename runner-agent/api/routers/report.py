@@ -24,6 +24,7 @@ from agents.today_action_builder import (
     build_today_action,
 )
 from api.deps import get_current_user_id, get_db
+from api.utils.timezone import local_today
 from memory.repositories import activities as activities_repo
 from memory.repositories import hrv as hrv_repo
 from memory.repositories import runner_profile
@@ -626,7 +627,7 @@ def get_report(
     user_id: str = Depends(get_current_user_id),
     db: Session = Depends(get_db),
 ) -> ReportOut:
-    target = date or DateT.today()
+    target = date or local_today()
 
     # 1. Activities del día — FUENTE PRINCIPAL: tabla activities (histórico real)
     crono = _read_cronologia(user_id, target) or {}
@@ -952,7 +953,7 @@ def get_report(
     )
 
     # 11. Nutrición e hidratación (factor ambiental + diferencial)
-    is_today = target == DateT.today()
+    is_today = target == local_today()
     weight = float(profile.weight_kg) if profile and profile.weight_kg else 68.0
     # Multi-tenant: altitude por usuario desde el perfil (antes 1736 hardcoded a
     # Popayán). Si el usuario no la registró, 0 = nivel del mar (default safe).

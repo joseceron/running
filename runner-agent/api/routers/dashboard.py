@@ -8,6 +8,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from api.deps import get_current_user_id, get_db
+from api.utils.timezone import local_today
 from api.schemas.dashboard import (
     DashboardOut,
     HRVNight,
@@ -59,7 +60,7 @@ def _build_upcoming(session: Session, user_id: str) -> UpcomingTrainingsOut:
     Hasta que conectemos plan_agent multi-tenant, retorna una semana modelo
     polarizada 80/20 ajustada al estado HRV actual.
     """
-    today = DateT.today()
+    today = local_today()
     baseline_ms = hrv.get_baseline(session, user_id)
     days_recorded = len(hrv.get_recent(session, user_id, days=14))
     building = baseline_ms is None
@@ -205,7 +206,7 @@ def get_dashboard(
         )
     days_to_goal = None
     if profile.goal_date:
-        days_to_goal = (profile.goal_date - DateT.today()).days
+        days_to_goal = (profile.goal_date - local_today()).days
     return DashboardOut(
         profile=ProfileOut.model_validate(profile, from_attributes=True),
         hrv=_build_hrv(db, user_id),

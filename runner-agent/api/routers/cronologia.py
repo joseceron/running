@@ -20,6 +20,7 @@ from api.schemas.dashboard import (
     CronologiaOut,
     CronologiaPoint,
 )
+from api.utils.timezone import local_today
 
 router = APIRouter(prefix="/users/me", tags=["cronologia"])
 
@@ -105,12 +106,12 @@ def get_cronologia(
     user_id: str = Depends(get_current_user_id),
     db: Session = Depends(get_db),
 ) -> CronologiaOut:
-    target = date or DateT.today()
+    target = date or local_today()
     cached = _read_cache(user_id, target)
     if cached is not None:
         return cached
     # Mock solo aplica para el día de hoy; días pasados sin cache devuelven vacío
-    if target == DateT.today():
+    if target == local_today():
         return _build_mock_day()
     return CronologiaOut(
         points=[],
