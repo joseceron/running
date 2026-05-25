@@ -311,14 +311,39 @@ def _sync_last_activity(client: GarminConnectClient, user_id: str) -> bool:
                 return i
         return None
 
+    def idx_any(*keys: str) -> int | None:
+        """Devuelve el primer índice cuya key esté en el descriptor."""
+        for k in keys:
+            i = idx(k)
+            if i is not None:
+                return i
+        return None
+
+    def idx_substr(substr: str) -> int | None:
+        """Fallback laxo: primer índice cuya key contiene `substr` (case-insensitive).
+        Útil cuando Garmin cambia el nombre de la métrica entre tipos de actividad
+        (running usa directDoubleCadence / directRunCadence, walking puede usar
+        directCadence o directWalkCadence o similar)."""
+        substr_lower = substr.lower()
+        for i, k in metrics_map.items():
+            if substr_lower in k.lower():
+                return i
+        return None
+
     i_t = idx("sumDuration")
     i_dist = idx("sumDistance")
     i_pace = idx("directSpeed")
     i_hr = idx("directHeartRate")
-    # directDoubleCadence = total steps por minuto (ambos pies).
-    # directRunCadence = pasos por pie (la mitad del valor que esperamos mostrar).
-    # Preferimos el primero para que la cadencia salga en el rango 140-180 spm habitual.
-    i_cad = idx("directDoubleCadence") or idx("directRunCadence")
+    # Cadencia: primero los nombres conocidos (priorizando "double" porque
+    # da el total de pasos/min en el rango habitual 140-180), luego fallback
+    # laxo a cualquier métrica con "cadence" en el nombre — así walking y
+    # hiking también ven la gráfica.
+    i_cad = idx_any(
+        "directDoubleCadence",
+        "directRunCadence",
+        "directWalkCadence",
+        "directCadence",
+    ) or idx_substr("cadence")
     i_elev = idx("directElevation")
     i_pow = idx("directPower")
 
