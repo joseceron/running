@@ -1,4 +1,4 @@
-import { liebreApi } from "@/lib/api";
+import { liebreApiServer } from "@/lib/api-server";
 import { Sidebar } from "@/components/dashboard/Sidebar";
 import { TopBar } from "@/components/dashboard/TopBar";
 import { InsightSection } from "@/components/dashboard/InsightCards";
@@ -35,9 +35,9 @@ export default async function ReportPage({
 
   try {
     [dashboardData, report, cronologia] = await Promise.all([
-      liebreApi.dashboard(),
-      liebreApi.report(safeDate),
-      liebreApi.cronologia(safeDate).catch(() => null),
+      liebreApiServer.dashboard(),
+      liebreApiServer.report(safeDate),
+      liebreApiServer.cronologia(safeDate).catch(() => null),
     ]);
   } catch (err) {
     return (

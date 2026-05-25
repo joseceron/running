@@ -181,9 +181,10 @@ export type Dashboard = {
   days_to_goal: number | null;
 };
 
-async function fetchJson<T>(path: string): Promise<T> {
+async function fetchJson<T>(path: string, idToken?: string | null): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`, {
     cache: "no-store",
+    headers: idToken ? { Authorization: `Bearer ${idToken}` } : undefined,
   });
   if (!res.ok) {
     throw new Error(`Liebre API ${path} → ${res.status} ${res.statusText}`);

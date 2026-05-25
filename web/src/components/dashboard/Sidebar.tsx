@@ -9,8 +9,10 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
+
+import { useAuth } from "@/lib/auth-context";
 
 type NavItem = {
   href: string;
@@ -37,6 +39,20 @@ function SidebarContent({
 }) {
   const firstName = userName.split(" ")[0];
   const pathname = usePathname();
+  const router = useRouter();
+  const { user, logout, isConfigured } = useAuth();
+  const [loggingOut, setLoggingOut] = useState(false);
+
+  const handleLogout = async () => {
+    setLoggingOut(true);
+    try {
+      await logout();
+    } catch {
+      /* la cookie ya se limpió en logout(), seguimos al login */
+    }
+    onItemClick?.();
+    router.replace("/login");
+  };
   return (
     <div className="flex flex-col h-full bg-bg-sidebar text-ink-on-dark">
       <div className="px-6 pt-7 pb-9">
@@ -72,18 +88,29 @@ function SidebarContent({
         })}
       </nav>
 
-      <div className="px-6 py-5 border-t border-white/8">
+      <div className="px-6 py-5 border-t border-white/8 space-y-3">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-full bg-accent-brand flex items-center justify-center text-sm font-semibold shrink-0">
             {firstName[0]}
           </div>
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <p className="text-sm font-medium truncate">{firstName}</p>
             <p className="text-xs text-ink-on-dark-soft truncate">
-              dev · jose_dev_uid
+              {user?.email ?? user?.phoneNumber ?? (isConfigured ? "—" : "dev")}
             </p>
           </div>
         </div>
+        {isConfigured && (
+          <button
+            type="button"
+            onClick={handleLogout}
+            disabled={loggingOut}
+            className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-md text-xs font-medium text-ink-on-dark-soft hover:bg-white/5 hover:text-ink-on-dark transition-colors disabled:opacity-50"
+          >
+            <IconLogout />
+            {loggingOut ? "Cerrando sesión…" : "Cerrar sesión"}
+          </button>
+        )}
       </div>
     </div>
   );
@@ -225,6 +252,15 @@ function IconUser() {
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
       <circle cx="12" cy="8" r="4" />
       <path d="M4 22a8 8 0 0 1 16 0" />
+    </svg>
+  );
+}
+function IconLogout() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+      <polyline points="16 17 21 12 16 7" />
+      <line x1="21" y1="12" x2="9" y2="12" />
     </svg>
   );
 }

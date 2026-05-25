@@ -1,4 +1,4 @@
-import { liebreApi } from "@/lib/api";
+import { liebreApiServer } from "@/lib/api-server";
 import { Sidebar } from "@/components/dashboard/Sidebar";
 import { TopBar } from "@/components/dashboard/TopBar";
 import { GoalCard } from "@/components/dashboard/GoalCard";
@@ -33,16 +33,16 @@ export default async function DashboardPage({
   let report = null;
   try {
     [data, diagnosis, cronologia, report] = await Promise.all([
-      liebreApi.dashboard(),
-      liebreApi.diagnosis(safeDate).catch((e) => {
+      liebreApiServer.dashboard(),
+      liebreApiServer.diagnosis(safeDate).catch((e) => {
         console.error("diagnosis fetch failed", e);
         return null;
       }),
-      liebreApi.cronologia(safeDate).catch((e) => {
+      liebreApiServer.cronologia(safeDate).catch((e) => {
         console.error("cronologia fetch failed", e);
         return null;
       }),
-      liebreApi.report(safeDate).catch((e) => {
+      liebreApiServer.report(safeDate).catch((e) => {
         console.error("report fetch failed", e);
         return null;
       }),

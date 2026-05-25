@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { liebreApi } from "@/lib/api";
+import { liebreApiServer } from "@/lib/api-server";
 import { Sidebar } from "@/components/dashboard/Sidebar";
 import { TopBar } from "@/components/dashboard/TopBar";
 import { ActivityHeader } from "@/components/dashboard/ActivityHeader";
@@ -19,7 +19,7 @@ export default async function ActivityDetailPage({
 
   let activity;
   try {
-    activity = await liebreApi.activity(id);
+    activity = await liebreApiServer.activity(id);
   } catch (err) {
     return (
       <div className="min-h-screen bg-bg-page flex items-center justify-center p-8">
