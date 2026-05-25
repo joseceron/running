@@ -84,9 +84,10 @@ class ActivitySplit(BaseModel):
     pace: str = Field(..., example="7:58")
     avg_hr: int
     max_hr: int
-    cadence: int
-    stride_m: float
-    gct_ms: int
+    # Running dynamics — null cuando Garmin no los reporta (caminata sin pod)
+    cadence: int | None = None
+    stride_m: float | None = None
+    gct_ms: int | None = None
     elevation_gain_m: float
 
 
@@ -114,9 +115,10 @@ class ActivityDetailOut(BaseModel):
     max_hr: int
     elevation_gain_m: int
     calories: int
-    avg_cadence: int
-    avg_stride_m: float
-    avg_gct_ms: int
+    # Running dynamics — null cuando Garmin no los reporta (típico en walking)
+    avg_cadence: int | None = None
+    avg_stride_m: float | None = None
+    avg_gct_ms: int | None = None
     training_effect_aerobic: float
     zone_distribution_pct: list[float] = Field(..., example=[10, 70, 18, 2, 0])
     samples: list[ActivitySample]

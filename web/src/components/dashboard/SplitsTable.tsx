@@ -49,18 +49,23 @@ export function SplitsTable({ splits }: { splits: ActivitySplit[] }) {
                 <td
                   className="py-2.5 px-2 tnum text-right font-medium"
                   style={{
-                    color: s.cadence >= 160 ? "var(--chart-cadence-good)" :
-                           s.cadence >= 140 ? "var(--ink-primary)" :
-                           "var(--chart-cadence-low)",
+                    color:
+                      s.cadence == null
+                        ? "var(--ink-tertiary)"
+                        : s.cadence >= 160
+                          ? "var(--chart-cadence-good)"
+                          : s.cadence >= 140
+                            ? "var(--ink-primary)"
+                            : "var(--chart-cadence-low)",
                   }}
                 >
-                  {s.cadence}
+                  {s.cadence ?? "—"}
                 </td>
                 <td className="py-2.5 px-2 tnum text-right text-ink-secondary">
-                  {s.stride_m.toFixed(2)} m
+                  {s.stride_m != null ? `${s.stride_m.toFixed(2)} m` : "—"}
                 </td>
                 <td className="py-2.5 px-2 tnum text-right text-ink-secondary">
-                  {s.gct_ms}
+                  {s.gct_ms ?? "—"}
                 </td>
                 <td className="py-2.5 px-2 tnum text-right text-ink-secondary">
                   +{s.elevation_gain_m.toFixed(0)} m

@@ -89,9 +89,10 @@ export type ActivitySplit = {
   pace: string;
   avg_hr: number;
   max_hr: number;
-  cadence: number;
-  stride_m: number;
-  gct_ms: number;
+  /** null cuando Garmin no reporta running dynamics (caminata sin pod) */
+  cadence: number | null;
+  stride_m: number | null;
+  gct_ms: number | null;
   elevation_gain_m: number;
 };
 
@@ -107,9 +108,9 @@ export type ActivityDetail = {
   max_hr: number;
   elevation_gain_m: number;
   calories: number;
-  avg_cadence: number;
-  avg_stride_m: number;
-  avg_gct_ms: number;
+  avg_cadence: number | null;
+  avg_stride_m: number | null;
+  avg_gct_ms: number | null;
   training_effect_aerobic: number;
   zone_distribution_pct: number[];
   samples: ActivitySample[];

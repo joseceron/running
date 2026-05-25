@@ -84,16 +84,30 @@ export function ActivityHeader({ activity }: { activity: ActivityDetail }) {
       <div className="mt-4 grid md:grid-cols-3 gap-3 text-xs">
         <Stat
           label={<Term k="cadencia">Cadencia media</Term>}
-          value={`${activity.avg_cadence} `}
+          value={activity.avg_cadence != null ? `${activity.avg_cadence} ` : "— "}
           unit={<Term k="spm">spm</Term>}
         />
         <Stat
           label={<Term k="zancada">Longitud zancada</Term>}
-          value={`${activity.avg_stride_m.toFixed(2)} m`}
+          value={
+            activity.avg_stride_m != null
+              ? `${activity.avg_stride_m.toFixed(2)} m`
+              : "—"
+          }
+          hint={
+            activity.avg_stride_m == null
+              ? "Requiere sensor de running dynamics"
+              : undefined
+          }
         />
         <Stat
           label={<Term k="gct">GCT medio</Term>}
-          value={`${activity.avg_gct_ms} ms`}
+          value={activity.avg_gct_ms != null ? `${activity.avg_gct_ms} ms` : "—"}
+          hint={
+            activity.avg_gct_ms == null
+              ? "Requiere sensor de running dynamics"
+              : undefined
+          }
         />
       </div>
     </div>
@@ -104,15 +118,18 @@ function Stat({
   label,
   value,
   unit,
+  hint,
 }: {
   label: React.ReactNode;
   value: string;
   unit?: React.ReactNode;
+  hint?: string;
 }) {
   return (
     <div
       className="rounded-md px-3 py-2"
       style={{ background: "var(--bg-card-subtle)" }}
+      title={hint}
     >
       <p className="text-[10px] text-ink-tertiary uppercase tracking-wider">
         {label}
@@ -121,6 +138,11 @@ function Stat({
         {value}
         {unit && <span className="ml-1 text-ink-tertiary font-normal">{unit}</span>}
       </p>
+      {hint && (
+        <p className="text-[10px] text-ink-tertiary mt-0.5 leading-tight">
+          {hint}
+        </p>
+      )}
     </div>
   );
 }

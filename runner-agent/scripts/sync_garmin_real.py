@@ -384,6 +384,9 @@ def _sync_last_activity(client: GarminConnectClient, user_id: str) -> bool:
         for s_ in split_data.get("lapDTOs", []):
             avg_speed = s_.get("averageSpeed") or 0
             pace_secs = int(1000 / avg_speed) if avg_speed > 0 else 0
+            split_cad = s_.get("averageRunCadence")
+            split_stride = s_.get("strideLength")
+            split_gct = s_.get("groundContactTime")
             splits.append(
                 {
                     "km": s_.get("lapIndex"),
@@ -391,9 +394,9 @@ def _sync_last_activity(client: GarminConnectClient, user_id: str) -> bool:
                     "pace": f"{pace_secs // 60}:{(pace_secs % 60):02d}" if pace_secs else "—",
                     "avg_hr": int(s_.get("averageHR") or 0),
                     "max_hr": int(s_.get("maxHR") or 0),
-                    "cadence": int(s_.get("averageRunCadence") or 0),
-                    "stride_m": round((s_.get("strideLength") or 0) / 100, 2),
-                    "gct_ms": int(s_.get("groundContactTime") or 0),
+                    "cadence": int(split_cad) if split_cad else None,
+                    "stride_m": round(split_stride / 100, 2) if split_stride else None,
+                    "gct_ms": int(split_gct) if split_gct else None,
                     "elevation_gain_m": round(s_.get("elevationGain") or 0, 1),
                 }
             )
@@ -418,6 +421,14 @@ def _sync_last_activity(client: GarminConnectClient, user_id: str) -> bool:
     avg_pace_secs = int(duration_secs / distance_km / 1) if distance_km else 0
     avg_pace_per_km = int(duration_secs / distance_km) if distance_km else 0
 
+    # Running dynamics — Garmin solo los reporta con sensor compatible
+    # (HRM-Pro/Run, Running Pod, reloj con sensor de zancada) y en actividad
+    # tipo running. En walking/hiking suelen venir null. Preservamos None
+    # para que el frontend muestre "—" en lugar de "0.00 m" engañoso.
+    raw_stride_cm = run_activity.get("strideLength")
+    raw_gct_ms = run_activity.get("groundContactTime")
+    raw_cadence = run_activity.get("averageRunningCadenceInStepsPerMinute")
+
     payload = {
         "activity_id": activity_id,
         "name": run_activity.get("activityName") or (
@@ -432,9 +443,9 @@ def _sync_last_activity(client: GarminConnectClient, user_id: str) -> bool:
         "max_hr": int(run_activity.get("maxHR") or 0),
         "elevation_gain_m": int(run_activity.get("elevationGain") or 0),
         "calories": int(run_activity.get("calories") or 0),
-        "avg_cadence": int(run_activity.get("averageRunningCadenceInStepsPerMinute") or 0),
-        "avg_stride_m": round(((run_activity.get("strideLength") or 0) / 100), 2),
-        "avg_gct_ms": int(run_activity.get("groundContactTime") or 0),
+        "avg_cadence": int(raw_cadence) if raw_cadence else None,
+        "avg_stride_m": round(raw_stride_cm / 100, 2) if raw_stride_cm else None,
+        "avg_gct_ms": int(raw_gct_ms) if raw_gct_ms else None,
         "training_effect_aerobic": round(run_activity.get("aerobicTrainingEffect") or 0, 1),
         "zone_distribution_pct": zone_dist,
         "samples": samples,

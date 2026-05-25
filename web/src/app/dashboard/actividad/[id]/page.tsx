@@ -100,18 +100,22 @@ export default async function ActivityDetailPage({
                 const isWalk =
                   activity.type === "walk" || paceSecsPerKm > 540;
                 const z2Pct = activity.zone_distribution_pct[1] ?? 0;
-                const cad = activity.avg_cadence;
+                const cad = activity.avg_cadence; // puede ser null en algunas actividades
 
                 if (isWalk) {
-                  let cadEval: React.ReactNode;
-                  if (cad >= 130)
-                    cadEval = "está en rango de caminata enérgica — buen estímulo neuromuscular.";
-                  else if (cad >= 110)
-                    cadEval = "está en el rango normal de una caminata.";
-                  else
-                    cadEval = (
-                      <>está baja para una caminata activa. Una cadencia ≥120 spm aprovecha mejor el estímulo aeróbico.</>
-                    );
+                  let cadEval: React.ReactNode = (
+                    <>se midió por el acelerómetro del reloj.</>
+                  );
+                  if (cad != null) {
+                    if (cad >= 130)
+                      cadEval = "está en rango de caminata enérgica — buen estímulo neuromuscular.";
+                    else if (cad >= 110)
+                      cadEval = "está en el rango normal de una caminata.";
+                    else
+                      cadEval = (
+                        <>está baja para una caminata activa. Una cadencia ≥120 spm aprovecha mejor el estímulo aeróbico.</>
+                      );
+                  }
                   return (
                     <>
                       <p className="text-sm text-ink-primary leading-relaxed">
@@ -121,9 +125,18 @@ export default async function ActivityDetailPage({
                         </strong>
                         {" "}— ideal para construir base aeróbica sin carga mecánica
                         de impacto (útil en días de recuperación o fase de
-                        reconstrucción). Tu <Term k="cadencia">cadencia</Term>{" "}
-                        media de <strong>{cad} <Term k="spm">spm</Term></strong>{" "}
-                        {cadEval}
+                        reconstrucción).{" "}
+                        {cad != null ? (
+                          <>
+                            Tu <Term k="cadencia">cadencia</Term> media de{" "}
+                            <strong>
+                              {cad} <Term k="spm">spm</Term>
+                            </strong>{" "}
+                            {cadEval}
+                          </>
+                        ) : (
+                          <>La cadencia no está disponible para esta sesión.</>
+                        )}
                       </p>
                       <p className="text-xs text-accent-brand mt-3 font-medium">
                         📄 Seiler (2010) · Int J Sports Physiol Perform · Review
@@ -141,18 +154,27 @@ export default async function ActivityDetailPage({
                         {z2Pct.toFixed(0)}% en <Term k="z2">Z2</Term>
                       </strong>{" "}
                       — exactamente la distribución polarizada que necesitas para
-                      construir base aeróbica (Seiler 2010). Tu{" "}
-                      <Term k="cadencia">cadencia</Term> media de{" "}
-                      <strong>
-                        {cad} <Term k="spm">spm</Term>
-                      </strong>{" "}
-                      {cad >= 165
-                        ? "está en el rango óptimo — gran trabajo manteniendo zancadas cortas."
-                        : `está por debajo del objetivo (165-180 spm). En los tramos efectivos de carrera la cadencia estuvo mejor; los segmentos de caminata cuesta arriba arrastraron el promedio. Se mejora con `}
-                      {cad < 165 && (
-                        <Term k="drills_skipping">drills de skipping</Term>
-                      )}
-                      {cad < 165 && " 3 veces por semana."}
+                      construir base aeróbica (Seiler 2010).{" "}
+                      {cad != null ? (
+                        <>
+                          Tu <Term k="cadencia">cadencia</Term> media de{" "}
+                          <strong>
+                            {cad} <Term k="spm">spm</Term>
+                          </strong>{" "}
+                          {cad >= 165
+                            ? "está en el rango óptimo — gran trabajo manteniendo zancadas cortas."
+                            : (
+                              <>
+                                está por debajo del objetivo (165-180 spm). En los
+                                tramos efectivos de carrera la cadencia estuvo mejor;
+                                los segmentos de caminata cuesta arriba arrastraron
+                                el promedio. Se mejora con{" "}
+                                <Term k="drills_skipping">drills de skipping</Term>{" "}
+                                3 veces por semana.
+                              </>
+                            )}
+                        </>
+                      ) : null}
                     </p>
                     <p className="text-xs text-accent-brand mt-3 font-medium">
                       📄 Kyröläinen et al. (2003) · Int J Sports Med · Observacional
