@@ -8,10 +8,13 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import { useAuth } from "@/lib/auth-context";
+
 type Status = "idle" | "syncing" | "ok" | "error";
 
 export function SyncButton({ compact = false }: { compact?: boolean }) {
   const router = useRouter();
+  const { idToken } = useAuth();
   const [status, setStatus] = useState<Status>("idle");
   const [msg, setMsg] = useState<string>("");
 
@@ -23,6 +26,7 @@ export function SyncButton({ compact = false }: { compact?: boolean }) {
         process.env.NEXT_PUBLIC_LIEBRE_API ?? "http://localhost:8080";
       const res = await fetch(`${apiBase}/v1/users/me/sync`, {
         method: "POST",
+        headers: idToken ? { Authorization: `Bearer ${idToken}` } : undefined,
       });
       if (!res.ok) {
         const text = await res.text();
