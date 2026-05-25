@@ -100,7 +100,9 @@ class TestToday:
             ta = build_today_action(today, [], acwr=1.0, hrv_today=55.0, hrv_baseline=55.0)
             _assert_shape(ta)
             assert ta["status"] == "train"
-            assert "Fuerza A" in ta["headline"]
+            # El DEFAULT_WEEKDAY_PLAN genérico para lunes es "Fuerza · 45 min"
+            # (antes era "Fuerza A (piernas + core)" hardcoded a José).
+            assert "Fuerza" in ta["headline"]
 
 
 # ─── PASADO ───────────────────────────────────────────────────────────

@@ -251,11 +251,26 @@ def _sync_activities_to_db(client: GarminConnectClient, user_id: str, lookback: 
     return saved
 
 
-def _sync_last_activity(client: GarminConnectClient, user_id: str) -> bool:
-    """Última actividad de RUNNING con dynamics → cache JSON formato ActivityDetailOut.
+_DETAIL_ALLOWED_TYPES = {"running", "walking", "hiking", "trail_running", "treadmill_running"}
+_TYPE_TO_FRONTEND = {
+    "running": "run", "trail_running": "run", "treadmill_running": "run",
+    "walking": "walk", "hiking": "walk",
+    "cycling": "bike", "indoor_cycling": "bike",
+    "swimming": "swim", "lap_swimming": "swim", "open_water_swimming": "swim",
+}
 
-    Esto es solo para la vista de detalle (samples + splits). El histórico
-    completo va a la tabla `activities` vía `_sync_activities_to_db`.
+
+def _sync_last_activity(client: GarminConnectClient, user_id: str) -> bool:
+    """Última actividad locomotriz (carrera o caminata) con detalle samples+splits
+    cacheada como JSON formato ActivityDetailOut.
+
+    Antes solo aceptaba running, lo que dejaba "Última actividad" mostrando la
+    carrera vieja cuando el último ejercicio había sido caminata. Ahora acepta
+    running/walking/hiking — los tipos que tienen cadencia + ritmo y se pueden
+    renderizar con el detalle de samples/splits actual.
+
+    Historial completo (todos los tipos) va a la tabla `activities` vía
+    `_sync_activities_to_db`.
     """
     raw_client = client.get_raw_client()
 
@@ -267,16 +282,18 @@ def _sync_last_activity(client: GarminConnectClient, user_id: str) -> bool:
 
     run_activity = None
     for act in acts or []:
-        type_key = (act.get("activityType") or {}).get("typeKey", "")
-        if "running" in type_key.lower():
+        type_key = (act.get("activityType") or {}).get("typeKey", "").lower()
+        if any(t in type_key for t in _DETAIL_ALLOWED_TYPES):
             run_activity = act
             break
 
     if not run_activity:
-        print("⚠️  Sin actividades de running recientes")
+        print("⚠️  Sin actividades locomotrices recientes (running/walking/hiking)")
         return False
 
     activity_id = str(run_activity["activityId"])
+    type_key_norm = (run_activity.get("activityType") or {}).get("typeKey", "").lower()
+    detail_type = _TYPE_TO_FRONTEND.get(type_key_norm, "run")
 
     # Detalle con samples
     try:
@@ -378,9 +395,11 @@ def _sync_last_activity(client: GarminConnectClient, user_id: str) -> bool:
 
     payload = {
         "activity_id": activity_id,
-        "name": run_activity.get("activityName") or "Carrera",
+        "name": run_activity.get("activityName") or (
+            "Caminata" if detail_type == "walk" else "Carrera"
+        ),
         "started_at": run_activity.get("startTimeLocal", "")[:19],
-        "type": "run",
+        "type": detail_type,
         "distance_km": distance_km,
         "duration_secs": duration_secs,
         "avg_pace": f"{avg_pace_per_km // 60}:{(avg_pace_per_km % 60):02d}" if avg_pace_per_km else "—",
