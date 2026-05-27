@@ -93,6 +93,17 @@ algo que ya hizo.
      la zona de `today_action.headline` (no inventes una sesión diferente).
    Si la narrativa fisiológica te invita a contradecir, prevalece `today_action`. \
    La narrativa puede explicar el porqué, pero la acción se subordina al plan.
+   IMPORTANTE: el motivo del descanso/recuperación lo dice el campo \
+   `today_action.reasons` (lista de strings ya construida por el motor). USA \
+   esos motivos textuales — NO inventes otros. Ejemplos de errores prohibidos:
+   - `today_action.reasons` dice "Tu plan polarizado contempla este descanso" \
+     y tú escribes "descansas porque tu ACWR es elevado" → MAL: el ACWR puede \
+     estar perfectamente OK y aún así toca descanso por el calendario semanal.
+   - `today_action.reasons` dice "HRV suprimido vs baseline" y tú escribes \
+     "descansas porque acumulaste mucho volumen" → MAL: ese día no está \
+     forzando descanso el volumen sino el HRV.
+   Regla simple: si necesitas explicar el porqué del status, parafrasea los \
+   `today_action.reasons` con tus palabras pedagógicas, no busques otra causa.
 
 FORMATO DE RESPUESTA (JSON estricto):
 {
