@@ -659,17 +659,34 @@ def get_report(
             )
         )
 
-    # 2. Biomecánica — preferir actividad de running del día consultado,
-    # fallback a la última de running guardada en BD, fallback final al cache.
+    # 2. Biomecánica — preferir actividad locomotriz (running, walking, hiking)
+    # del DÍA CONSULTADO. Si target es hoy y no hay nada del día, fallback a
+    # la última actividad guardada en BD. Si target es PASADO sin actividad,
+    # NO traer una vieja — el usuario vería datos de otra fecha confusos.
+    _LOCOMOTOR_TYPES = ("running", "walking", "hiking")
     biomech_source: dict | None = None
     biomech_db = next(
-        (a for a in db_activities if "running" in (a.type_key or "").lower()),
+        (
+            a for a in db_activities
+            if any(t in (a.type_key or "").lower() for t in _LOCOMOTOR_TYPES)
+        ),
         None,
     )
-    if biomech_db is None:
+    is_target_today = target == local_today()
+    if biomech_db is None and is_target_today:
+        # Solo fallback global cuando estamos viendo hoy. Toma la última
+        # locomotriz (no solo running) para que caminatas también cuenten
+        # hacia los gates de cadencia, polarización, etc.
         try:
-            latest_run = activities_repo.get_latest(db, user_id, type_key="running", limit=1)
-            biomech_db = latest_run[0] if latest_run else None
+            latest_any = None
+            for tk in _LOCOMOTOR_TYPES:
+                rows = activities_repo.get_latest(db, user_id, type_key=tk, limit=1)
+                if rows and (latest_any is None or (rows[0].started_at and (
+                    latest_any.started_at is None
+                    or rows[0].started_at > latest_any.started_at
+                ))):
+                    latest_any = rows[0]
+            biomech_db = latest_any
         except Exception:
             db.rollback()
             biomech_db = None
@@ -691,8 +708,14 @@ def get_report(
             except Exception:
                 pass
 
-    # Cache de samples para cardiac drift (sigue del JSON — datos high-res)
-    latest = _read_latest_activity(user_id) or {}
+    # Cache de samples para cardiac drift (datos high-res). Solo es válido
+    # si el cache corresponde al DÍA CONSULTADO — antes lo usábamos siempre,
+    # lo que causaba que al navegar a días pasados con las flechas, los
+    # insights (fat_burn, cardiac_drift) siguieran mostrando la última
+    # actividad de hoy en lugar de la del día consultado.
+    latest_raw = _read_latest_activity(user_id) or {}
+    _latest_date = (latest_raw.get("started_at") or "")[:10]
+    latest = latest_raw if _latest_date == target.isoformat() else {}
 
     # Fallback A: si BD no trajo nada pero la cronología cache tiene activities,
     # úsala (compat hacia atrás antes de que la migration se aplique).

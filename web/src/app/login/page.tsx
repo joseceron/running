@@ -11,26 +11,12 @@ import {
 } from "firebase/auth";
 import { getFirebaseAuth, googleProvider, isFirebaseConfigured } from "@/lib/firebase";
 import { useAuth } from "@/lib/auth-context";
-import { liebreAuthed } from "@/lib/api";
 
 type Stage = "choose" | "phone-input" | "phone-code";
 
-/** Decide a dónde mandar a un user recién autenticado:
- *  /onboarding si nunca completó perfil, /dashboard si sí.
- */
-async function postLoginRedirect(idToken: string | null): Promise<string> {
-  try {
-    const profile = await liebreAuthed.getProfileOrNull(idToken);
-    return profile ? "/dashboard" : "/onboarding";
-  } catch {
-    // Si el backend está caído, intentar dashboard de todos modos.
-    return "/dashboard";
-  }
-}
-
 export default function LoginPage() {
   const router = useRouter();
-  const { user, loading, idToken } = useAuth();
+  const { user, loading } = useAuth();
   const [stage, setStage] = useState<Stage>("choose");
   const [phone, setPhone] = useState("");
   const [code, setCode] = useState("");
@@ -39,12 +25,16 @@ export default function LoginPage() {
   const [busy, setBusy] = useState(false);
   const recaptchaRef = useRef<HTMLDivElement | null>(null);
 
-  // Si ya está logueado, decidir destino (onboarding vs dashboard) según perfil.
+  // Si ya está logueado al cargar /login, redirigir optimistamente al
+  // dashboard. El AuthGuard se encarga de mandarlo a /onboarding si no tiene
+  // perfil — así no bloqueamos el redirect esperando el GET /profile (que
+  // puede tardar 5-10s en cold start de Cloud Run y daba sensación de que
+  // el botón no respondía).
   useEffect(() => {
     if (!loading && user) {
-      postLoginRedirect(idToken).then((dest) => router.replace(dest));
+      router.replace("/dashboard");
     }
-  }, [loading, user, idToken, router]);
+  }, [loading, user, router]);
 
   const handleGoogle = async () => {
     if (!isFirebaseConfigured) {
@@ -54,10 +44,10 @@ export default function LoginPage() {
     setBusy(true);
     setError(null);
     try {
-      const result = await signInWithPopup(getFirebaseAuth(), googleProvider);
-      const token = await result.user.getIdToken();
-      const dest = await postLoginRedirect(token);
-      router.replace(dest);
+      await signInWithPopup(getFirebaseAuth(), googleProvider);
+      // Redirect optimista: AuthGuard valida perfil y redirige a /onboarding
+      // si falta. No esperamos el round-trip al backend aquí.
+      router.replace("/dashboard");
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     } finally {
@@ -92,10 +82,9 @@ export default function LoginPage() {
     setBusy(true);
     setError(null);
     try {
-      const result = await confirmation.confirm(code);
-      const token = await result.user.getIdToken();
-      const dest = await postLoginRedirect(token);
-      router.replace(dest);
+      await confirmation.confirm(code);
+      // Optimista: AuthGuard valida perfil y redirige a /onboarding si falta.
+      router.replace("/dashboard");
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     } finally {
