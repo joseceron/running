@@ -20,9 +20,9 @@ function fmtShortDate(iso: string): string {
 
 const STATUS_LABEL: Record<HRV["status"], string> = {
   optimal: "Equilibrado",
-  reduced: "Reducido",
-  suppressed: "Suprimido",
-  building_baseline: "Construyendo baseline",
+  reduced: "Bajo",
+  suppressed: "Muy bajo",
+  building_baseline: "Aprendiendo tu cuerpo",
 };
 
 const STATUS_CLASS: Record<HRV["status"], string> = {
@@ -245,7 +245,7 @@ export function HRVCard({ hrv }: { hrv: HRV }) {
         <div className="flex-1 min-w-0">
           <div className="grid grid-cols-2 gap-y-2.5 gap-x-4 mb-3">
             <StatBlock
-              label="Baseline"
+              label="Línea base"
               value={hrv.baseline_ms ? `${hrv.baseline_ms} ms` : "—"}
             />
             <StatBlock label="Delta" value={deltaStr} color={deltaColor} />
@@ -265,7 +265,7 @@ export function HRVCard({ hrv }: { hrv: HRV }) {
       {/* Progress bar baseline */}
       <div className="mt-3">
         <div className="flex justify-between mb-1.5">
-          <span className="text-[11px] text-ink-tertiary">Progreso baseline</span>
+          <span className="text-[11px] text-ink-tertiary">Progreso de tu línea base</span>
           <span className="text-[11px] text-ink-secondary tnum">
             {hrv.days_recorded}/{hrv.days_required}
           </span>
@@ -285,13 +285,69 @@ export function HRVCard({ hrv }: { hrv: HRV }) {
           <span className="label-uppercase">Interpretación Liebre</span>
         </div>
         <p className="text-[13px] text-ink-secondary leading-relaxed">
-          Tu HRV de {hrv.latest_value} ms está dentro del rango funcional,
-          pero el agente necesita {hrv.days_required - hrv.days_recorded}{" "}
-          noches más para establecer tu baseline personal y detectar patrones
-          individuales de recuperación.
+          {renderInterpretacion(hrv)}
         </p>
         <CiteBadge text="Plews & Buchheit (2017) · J Strength Cond Res · Observacional" />
       </div>
     </div>
+  );
+}
+
+function renderInterpretacion(hrv: HRV): React.ReactNode {
+  const v = hrv.latest_value;
+  const base = hrv.baseline_ms;
+  const baseTxt = base ? ` (~${Math.round(base)} ms)` : "";
+
+  if (hrv.status === "building_baseline") {
+    const missing = Math.max(0, hrv.days_required - hrv.days_recorded);
+    if (missing === 0) {
+      return (
+        <>
+          ¡Completaste tus {hrv.days_required} noches! En el próximo sync,
+          Liebre terminará de calcular tu{" "}
+          <Term k="baseline">línea base</Term> personal y empezará a compararte
+          contra TI mismo, no contra promedios.
+        </>
+      );
+    }
+    return (
+      <>
+        Liebre está aprendiendo cómo es tu cuerpo. Faltan{" "}
+        <strong>{missing}</strong>{" "}
+        {missing === 1 ? "noche durmiendo" : "noches durmiendo"} con el reloj
+        para conocer tu <Term k="baseline">línea base</Term> — el valor
+        habitual de tu <Term k="vfc">VFC</Term>, contra el que comparamos cada
+        noche para detectar fatiga real.
+      </>
+    );
+  }
+
+  if (hrv.status === "optimal") {
+    return (
+      <>
+        Tu <Term k="vfc">VFC</Term> de <strong>{v} ms</strong> está dentro de
+        tu <Term k="baseline">línea base</Term> personal{baseTxt}. Tu sistema
+        nervioso está recuperado — puedes entrenar según el plan.
+      </>
+    );
+  }
+
+  if (hrv.status === "reduced") {
+    return (
+      <>
+        Tu <Term k="vfc">VFC</Term> de <strong>{v} ms</strong> está por debajo
+        de tu <Term k="baseline">línea base</Term>{baseTxt}. Recuperación
+        parcial — hoy mejor algo suave o descanso.
+      </>
+    );
+  }
+
+  // suppressed
+  return (
+    <>
+      Tu <Term k="vfc">VFC</Term> de <strong>{v} ms</strong> está muy por
+      debajo de tu <Term k="baseline">línea base</Term>{baseTxt} — señal clara
+      de fatiga acumulada. Hoy toca descanso.
+    </>
   );
 }
