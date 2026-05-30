@@ -1,9 +1,8 @@
 import Link from "next/link";
 import {
-  COMPARISON,
   HERO_STATS,
+  HOW_STEPS,
   MODULES,
-  PAIN_POINTS,
   PLANS,
   REAL_DATA_CARDS,
   fmtCOP,
@@ -63,10 +62,10 @@ export default function HomePage() {
           </Link>
           <div className="flex items-center gap-1 md:gap-2">
             <NavLink href="#modulos">Módulos</NavLink>
-            <NavLink href="#comparativa">vs Connect</NavLink>
+            <NavLink href="#como-funciona">Cómo funciona</NavLink>
             <NavLink href="#planes">Planes</NavLink>
             <Link
-              href="/dashboard"
+              href="/login"
               className="text-sm font-semibold ml-2 px-4 py-2 rounded-md transition-opacity hover:opacity-90"
               style={{ background: C.accent, color: "#fff" }}
             >
@@ -209,7 +208,7 @@ export default function HomePage() {
                   animationDelay: "0.15s",
                 }}
               >
-                Tu Garmin mide.
+                Tu reloj ya sabe cómo estás.
                 <br />
                 Liebre te dice{" "}
                 <span
@@ -221,7 +220,7 @@ export default function HomePage() {
                     position: "relative",
                   }}
                 >
-                  qué hacer mañana
+                  qué hacer con eso
                 </span>
                 .
               </h1>
@@ -238,13 +237,14 @@ export default function HomePage() {
                   animationDelay: "0.25s",
                 }}
               >
-                Tu reloj registra HRV, biomecánica y carga. Liebre los cruza con{" "}
+                Cada mañana te decimos si hoy te conviene entrenar fuerte,
+                suave o descansar — leyendo tu{" "}
                 <span style={{ color: C.text, fontWeight: 600 }}>
-                  40+ papers de Scopus y Web of Science
+                  sueño, tu recuperación y tu cuerpo
                 </span>
-                , construye tu baseline en 14 noches y ajusta tu plan{" "}
+                . Con la ciencia que lo respalda, explicada en palabras{" "}
                 <span style={{ color: C.text, fontWeight: 600 }}>
-                  semana a semana
+                  que se entienden
                 </span>
                 .
               </p>
@@ -252,7 +252,7 @@ export default function HomePage() {
               {/* CTAs primario + secundario */}
               <div className="flex flex-wrap gap-3 justify-center lg:justify-start mb-3 liebre-reveal" style={{ animationDelay: "0.35s" }}>
                 <Link
-                  href="/dashboard"
+                  href="/login"
                   className="liebre-shimmer liebre-lift"
                   style={{
                     background: C.accent,
@@ -553,8 +553,9 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ─────────────── EL PROBLEMA ─────────────── */}
+      {/* ─────────────── CÓMO FUNCIONA ─────────────── */}
       <section
+        id="como-funciona"
         style={{
           background: C.surface,
           borderTop: `1px solid ${C.border}`,
@@ -563,7 +564,7 @@ export default function HomePage() {
         }}
       >
         <div className="max-w-6xl mx-auto px-4 md:px-8">
-          <div className="text-center mb-12">
+          <div className="text-center mb-10">
             <p
               style={{
                 fontSize: 11,
@@ -574,7 +575,7 @@ export default function HomePage() {
                 fontWeight: 600,
               }}
             >
-              El problema
+              Cómo funciona
             </p>
             <h2
               style={{
@@ -586,247 +587,127 @@ export default function HomePage() {
                 color: C.text,
               }}
             >
-              Garmin te dice <span style={{ color: C.textMuted }}>qué</span>{" "}
-              entrenar.
-              <br />
-              Nadie te dice <span style={{ color: C.red }}>por qué</span> estás
-              en riesgo.
+              Tienes los datos.{" "}
+              <span style={{ color: C.accent }}>Te falta el qué hacer.</span>
             </h2>
+            <p
+              style={{
+                fontSize: 16,
+                color: C.textMuted,
+                maxWidth: 620,
+                margin: "16px auto 0",
+                lineHeight: 1.65,
+              }}
+            >
+              Tu Garmin ya captura todo lo que importa: cómo dormiste, cuánto
+              te recuperaste, cómo corriste. Liebre toma esos datos y te dice,
+              en una frase cada mañana, qué hacer hoy — y por qué.
+            </p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-5 max-w-5xl mx-auto">
-            {PAIN_POINTS.map((p) => (
+          {/* Garmin mide + Liebre decide — tono aliado, sin pelea */}
+          <div className="flex flex-wrap items-center justify-center gap-3 mb-12">
+            <span
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
+                fontSize: 13,
+                fontWeight: 600,
+                background: C.surface2,
+                border: `1px solid ${C.border}`,
+                borderRadius: 999,
+                padding: "8px 16px",
+              }}
+            >
+              <span style={{ color: "#79c0ff", fontWeight: 700 }}>Garmin</span>
+              <span style={{ color: C.textDim }}>mide</span>
+            </span>
+            <span style={{ color: C.accent, fontSize: 18, fontWeight: 700 }}>
+              +
+            </span>
+            <span
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
+                fontSize: 13,
+                fontWeight: 600,
+                background: C.accentSoft,
+                border: `1px solid rgba(47,129,247,0.32)`,
+                borderRadius: 999,
+                padding: "8px 16px",
+              }}
+            >
+              <span style={{ color: C.accent, fontWeight: 700 }}>Liebre</span>
+              <span style={{ color: C.textMuted }}>decide</span>
+            </span>
+          </div>
+
+          {/* 3 pasos */}
+          <div className="grid md:grid-cols-3 gap-5">
+            {HOW_STEPS.map((s, i) => (
               <div
-                key={p.title}
+                key={s.title}
+                className="liebre-lift"
                 style={{
                   background: C.surface2,
                   border: `1px solid ${C.border}`,
                   borderRadius: 14,
-                  padding: "22px 24px",
-                  display: "flex",
-                  gap: 16,
+                  padding: "26px 24px",
                 }}
               >
-                <div
-                  style={{
-                    fontSize: 24,
-                    flexShrink: 0,
-                    width: 40,
-                    height: 40,
-                    borderRadius: 8,
-                    background: C.surface3,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  {p.icon}
-                </div>
-                <div>
-                  <h3
+                <div className="flex items-center gap-3 mb-4">
+                  <span
                     style={{
-                      fontSize: 14,
-                      fontWeight: 700,
-                      color: C.text,
-                      marginBottom: 6,
+                      width: 44,
+                      height: 44,
+                      borderRadius: 12,
+                      background: C.accentSoft,
+                      border: `1px solid rgba(47,129,247,0.3)`,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontSize: 22,
+                      flexShrink: 0,
                     }}
                   >
-                    {p.title}
-                  </h3>
-                  <p
+                    {s.icon}
+                  </span>
+                  <span
                     style={{
                       fontSize: 13,
-                      color: C.textMuted,
-                      lineHeight: 1.6,
+                      fontWeight: 800,
+                      color: C.accent,
+                      fontVariantNumeric: "tabular-nums",
+                      letterSpacing: "0.05em",
                     }}
                   >
-                    {p.body}
-                  </p>
+                    PASO {i + 1}
+                  </span>
                 </div>
+                <h3
+                  style={{
+                    fontSize: 18,
+                    fontWeight: 700,
+                    color: C.text,
+                    marginBottom: 8,
+                    lineHeight: 1.25,
+                  }}
+                >
+                  {s.title}
+                </h3>
+                <p
+                  style={{
+                    fontSize: 13.5,
+                    color: C.textMuted,
+                    lineHeight: 1.65,
+                  }}
+                >
+                  {s.body}
+                </p>
               </div>
             ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ─────────────── COMPARATIVA ─────────────── */}
-      <section
-        id="comparativa"
-        style={{ background: C.bg, padding: "80px 0" }}
-      >
-        <div className="max-w-5xl mx-auto px-4 md:px-8">
-          <div className="text-center mb-12">
-            <p
-              style={{
-                fontSize: 11,
-                textTransform: "uppercase",
-                letterSpacing: "0.2em",
-                color: C.accent,
-                marginBottom: 12,
-                fontWeight: 600,
-              }}
-            >
-              Comparativa
-            </p>
-            <h2
-              style={{
-                fontSize: "clamp(26px, 4vw, 42px)",
-                fontWeight: 800,
-                lineHeight: 1.15,
-                color: C.text,
-              }}
-            >
-              Liebre vs Garmin Connect+
-            </h2>
-            <p
-              style={{
-                fontSize: 15,
-                color: C.textMuted,
-                marginTop: 12,
-                maxWidth: 580,
-                margin: "12px auto 0",
-                lineHeight: 1.6,
-              }}
-            >
-              Garmin Connect+ cuesta $8.99/mes. Esta es la diferencia en lo que
-              realmente importa para rendimiento y prevención.
-            </p>
-          </div>
-
-          <div
-            style={{
-              border: `1px solid ${C.border}`,
-              borderRadius: 12,
-              overflow: "hidden",
-            }}
-          >
-            <div style={{ overflowX: "auto" }}>
-              <table
-                style={{
-                  width: "100%",
-                  borderCollapse: "separate",
-                  borderSpacing: 0,
-                  fontSize: 13,
-                }}
-              >
-                <thead>
-                  <tr>
-                    <th
-                      style={{
-                        textAlign: "left",
-                        padding: "16px 20px",
-                        background: C.surface2,
-                        color: C.text,
-                        fontWeight: 700,
-                        fontSize: 12,
-                        textTransform: "uppercase",
-                        letterSpacing: "0.05em",
-                      }}
-                    >
-                      Capacidad
-                    </th>
-                    <th
-                      style={{
-                        background: "#1a1a2e",
-                        color: "#79c0ff",
-                        padding: "16px 20px",
-                        textAlign: "center",
-                        fontWeight: 700,
-                        fontSize: 12,
-                        textTransform: "uppercase",
-                        letterSpacing: "0.05em",
-                        borderLeft: `1px solid ${C.border}`,
-                      }}
-                    >
-                      Connect+ · $8.99
-                    </th>
-                    <th
-                      style={{
-                        background: "#0d2a14",
-                        color: C.green,
-                        padding: "16px 20px",
-                        textAlign: "center",
-                        fontWeight: 700,
-                        fontSize: 12,
-                        textTransform: "uppercase",
-                        letterSpacing: "0.05em",
-                        borderLeft: `1px solid ${C.border}`,
-                      }}
-                    >
-                      Liebre
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {COMPARISON.map((row) => {
-                    const connectNo =
-                      row.connect.includes("No") ||
-                      row.connect === "Sin citas" ||
-                      row.connect === "No existe";
-                    return (
-                      <tr key={row.capability}>
-                        <td
-                          style={{
-                            padding: "13px 20px",
-                            background: C.surface,
-                            color: C.textMuted,
-                            borderTop: `1px solid ${C.borderSoft}`,
-                          }}
-                        >
-                          {row.capability}
-                        </td>
-                        <td
-                          style={{
-                            padding: "13px 20px",
-                            background: "#0d0d1a",
-                            textAlign: "center",
-                            borderTop: `1px solid ${C.borderSoft}`,
-                            borderLeft: `1px solid ${C.borderSoft}`,
-                          }}
-                        >
-                          <span
-                            style={{
-                              color: connectNo ? C.red : C.yellow,
-                              fontSize: 16,
-                              marginRight: 6,
-                            }}
-                          >
-                            {connectNo ? "✗" : "~"}
-                          </span>
-                          <span
-                            style={{ color: C.textMuted, fontSize: 12 }}
-                          >
-                            {row.connect}
-                          </span>
-                        </td>
-                        <td
-                          style={{
-                            padding: "13px 20px",
-                            background: "#0a1f0a",
-                            textAlign: "center",
-                            borderTop: `1px solid ${C.borderSoft}`,
-                            borderLeft: `1px solid ${C.borderSoft}`,
-                          }}
-                        >
-                          <span
-                            style={{
-                              color: C.green,
-                              fontSize: 16,
-                              marginRight: 6,
-                            }}
-                          >
-                            ✓
-                          </span>
-                          <span style={{ color: C.text, fontSize: 12 }}>
-                            {row.liebre}
-                          </span>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
           </div>
         </div>
       </section>
@@ -865,8 +746,8 @@ export default function HomePage() {
                 margin: "0 auto",
               }}
             >
-              8 reportes que{" "}
-              <span style={{ color: C.accent }}>Connect no tiene</span>
+              8 análisis que{" "}
+              <span style={{ color: C.accent }}>Liebre hace por ti</span>
             </h2>
             <p
               style={{
@@ -1084,7 +965,7 @@ export default function HomePage() {
                 fontWeight: 600,
               }}
             >
-              Datos reales · José Luis Cerón
+              Probado con datos reales
             </p>
             <h2
               style={{
@@ -1207,7 +1088,7 @@ export default function HomePage() {
                 color: C.text,
               }}
             >
-              Comparado con lo que ya pagas
+              Elige tu plan
             </h2>
             <p
               style={{
@@ -1219,8 +1100,8 @@ export default function HomePage() {
                 lineHeight: 1.6,
               }}
             >
-              Versus Garmin Connect+ ($8.99/mes) o un entrenador personal
-              ($150–400/mes).
+              Empieza gratis en la beta abierta. Cuando quieras seguir, cuesta
+              menos que un entrenador personal ($150–400/mes).
             </p>
           </div>
 
@@ -1341,7 +1222,7 @@ export default function HomePage() {
                   </ul>
 
                   <Link
-                    href="/dashboard"
+                    href="/login"
                     className={isRec ? "liebre-shimmer" : ""}
                     style={{
                       display: "block",
@@ -1417,7 +1298,7 @@ export default function HomePage() {
             — no con promedios poblacionales.
           </p>
           <Link
-            href="/dashboard"
+            href="/login"
             className="liebre-shimmer liebre-lift"
             style={{
               display: "inline-block",
@@ -1469,9 +1350,9 @@ export default function HomePage() {
               title="Producto"
               links={[
                 { href: "#modulos", label: "Módulos" },
-                { href: "#comparativa", label: "vs Garmin Connect" },
+                { href: "#como-funciona", label: "Cómo funciona" },
                 { href: "#planes", label: "Planes" },
-                { href: "/dashboard", label: "Demo del dashboard" },
+                { href: "/login", label: "Entrar" },
               ]}
             />
             <div>

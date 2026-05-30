@@ -29,63 +29,30 @@ export function moduleAccent(n: number): { accent: string; icon: string } {
 }
 
 export const HERO_STATS = [
-  { value: "−33%", label: "Z4 corregida en 1 semana", note: "caso real" },
-  { value: "14", label: "noches para tu baseline HRV", note: "personal, no poblacional" },
-  { value: "40+", label: "papers Scopus + Web of Science", note: "con cita y nivel" },
-  { value: "8", label: "módulos cruzando tus datos", note: "biomecánica · fatiga · plan" },
+  { value: "−33%", label: "menos tiempo en zona de riesgo", note: "caso real, en 1 semana" },
+  { value: "14", label: "noches para conocer tu cuerpo", note: "tu línea base, no un promedio" },
+  { value: "40+", label: "estudios científicos detrás", note: "cada consejo con su cita" },
+  { value: "8", label: "análisis automáticos cada día", note: "sueño · carga · técnica" },
 ] as const;
 
-export const PAIN_POINTS = [
-  {
-    icon: "🎯",
-    title: "El pace sugerido está mal calibrado",
-    body: "Connect usa fórmulas estimadas. Liebre usa tu respuesta fisiológica real medida sesión a sesión. Para José, Z2 real es 7:00–8:30/km, no 6:15.",
-  },
-  {
-    icon: "📊",
-    title: "No detecta la inversión de zonas",
-    body: "José tenía 80% de sus sesiones en Z4–Z5. Connect no detectó ni alertó. Liebre lo identificó con el primer análisis de historial.",
-  },
-  {
-    icon: "🦵",
-    title: "No recuerda las lesiones",
-    body: "Connect+ no sabe que tienes desgarro de sóleo al 49%. Cada plan es genérico. Liebre integra el historial clínico en cada recomendación de carga.",
-  },
-  {
-    icon: "🔬",
-    title: "Sin respaldo científico específico",
-    body: "Connect da instrucciones. Liebre cita el paper que respalda cada decisión: título, año, journal, nivel de evidencia (RCT / meta-análisis / cohorte).",
-  },
-  {
-    icon: "📈",
-    title: "Otras apps adaptativas no muestran tu salud",
-    body: "One Running ($14.99/mes) y Runna ($19.99) hacen planes que se ajustan a tu fatiga, pero NO te muestran tu HRV, sueño profundo, Body Battery ni cronología 24h. Liebre visualiza e interpreta cada métrica de tu reloj — no solo la usa internamente.",
-  },
+/** Los 3 pasos del "Cómo funciona" — Garmin mide, Liebre decide. Tono aliado. */
+export const HOW_STEPS = [
   {
     icon: "⌚",
-    title: "Hoy: integración nativa con Garmin",
-    body: "Sincronización directa con Garmin Connect — HRV, running dynamics, Body Battery, sueño y actividad por minuto. Coros, Polar y Apple Health en el roadmap del próximo trimestre.",
+    title: "Conecta tu reloj",
+    body: "En 2 minutos. Liebre lee tu sueño, tu recuperación y tus entrenos directo de Garmin — sin que tengas que apuntar nada.",
+  },
+  {
+    icon: "🧠",
+    title: "Liebre entiende tus datos",
+    body: "Cruza lo que mide tu reloj con más de 40 estudios científicos y aprende cómo responde tu cuerpo durante las primeras 14 noches.",
+  },
+  {
+    icon: "☀️",
+    title: "Cada mañana sabes qué hacer",
+    body: "¿Hoy te conviene entrenar fuerte, suave o descansar? Una respuesta clara, en una frase, con la ciencia que la respalda.",
   },
 ] as const;
-
-export const COMPARISON: Array<{
-  capability: string;
-  connect: string;
-  liebre: string;
-}> = [
-  { capability: "Plan de entrenamiento semanal", connect: "Genérico por objetivo", liebre: "Ajustado a tu respuesta real" },
-  { capability: "Pace objetivo basado en fisiología real", connect: "Estimado por algoritmo", liebre: "Medido de tus sesiones reales" },
-  { capability: "Detección de inversión de zonas (Z4–Z5 excesivo)", connect: "No disponible", liebre: "Análisis de historial completo" },
-  { capability: "Baseline HRV personal (no poblacional)", connect: "Usa valores medios", liebre: "Construido en 14 noches" },
-  { capability: "Integración de historial de lesiones", connect: "No existe", liebre: "Cada plan considera tu lesión" },
-  { capability: "ACWR — ratio carga aguda/crónica", connect: "Training Load parcial", liebre: "Gabbett 2016, alertas en tiempo real" },
-  { capability: "Análisis running dynamics vs riesgo lesión", connect: "Muestra datos, no interpreta", liebre: "GCT + balance + oscilación con flag clínico" },
-  { capability: "Detección de degradación de forma dentro de sesión", connect: "No disponible", liebre: "Cadencia km1 vs km final, alerta ≥5%" },
-  { capability: "Nutrición periodizada por tipo de sesión", connect: "Calorías genéricas", liebre: "Mifflin-St Jeor + carga real Garmin" },
-  { capability: "Respaldo científico por recomendación", connect: "Sin citas", liebre: "Paper, año, journal, nivel evidencia" },
-  { capability: "Evolución semanal de distribución de zonas", connect: "No disponible", liebre: "Gráfico comparativo sesión a sesión" },
-  { capability: "Protocolo específico por tipo de lesión", connect: "No existe", liebre: "Ejercicios excéntricos, carga progresiva" },
-];
 
 export const MODULES: Module[] = [
   {
@@ -99,7 +66,7 @@ export const MODULES: Module[] = [
       "Alerta automática si Z4–Z5 > 25% acumulado",
       "Pace Z2 real calibrado a tu FC, no estimado",
     ],
-    realData: "José tenía 80% en Z4–Z5 — Connect nunca alertó",
+    realData: "Caso real: 80% del tiempo en zona alta, detectado en el primer análisis",
     evidence: [
       { level: 3, cite: "Seiler & Kjerland (2006) · Scand J Med Sci Sports", finding: "300+ atletas de élite, 75–80% baja intensidad como distribución óptima" },
       { level: 3, cite: "Stöggl & Sperlich (2014) · Front Physiol", finding: "RCT: modelo polarizado supera al entrenamiento de umbral en VO₂máx" },
@@ -116,7 +83,7 @@ export const MODULES: Module[] = [
       "Correlación HRV vs rendimiento en sesiones Z4–Z5",
       "Estado del sistema nervioso autónomo (simpático/parasimpático)",
     ],
-    realData: "José en construcción de baseline (noche 8/14)",
+    realData: "Tu línea base personal, lista en 14 noches",
     evidence: [
       { level: 3, cite: "Plews et al. (2013) · Int J Sports Physiol Perform", finding: "HRV individual superior a FC reposo para monitorear adaptación al entrenamiento" },
       { level: 2, cite: "Kiviniemi et al. (2010) · J Strength Cond Res", finding: "Planes guiados por HRV individual mejoran VO₂máx vs planes fijos" },
@@ -133,7 +100,7 @@ export const MODULES: Module[] = [
       "Histograma de carga 8 semanas",
       "Volumen máximo recomendado para la próxima semana (+10%)",
     ],
-    realData: "Patrón detectado: semanas alternas hard/rest de alto riesgo",
+    realData: "Caso real: patrón de semanas hard/rest de alto riesgo, detectado a tiempo",
     evidence: [
       { level: 3, cite: "Gabbett (2016) · Br J Sports Med", finding: "ACWR >1.5 asociado a riesgo de lesión 4–6× mayor" },
       { level: 2, cite: "Nielsen et al. (2012) · Br J Sports Med", finding: "Incremento >10%/sem es predictor independiente de lesión" },
@@ -145,12 +112,12 @@ export const MODULES: Module[] = [
     description:
       "Interpreta los running dynamics de Garmin (GCT, oscilación vertical, balance izq/der, longitud de zancada) en función de tu historial de lesiones y la literatura. No muestra números: explica qué hacer con ellos.",
     bullets: [
-      "GCT contextualizado con lesión activa (sóleo → umbral 240 ms)",
+      "GCT contextualizado con lesión activa (umbral por tejido)",
       "Oscilación vertical: flag si >9 cm",
       "Detección de degradación de forma: cadencia km1 vs km5",
       "Tendencia semanal de economía (mejora/empeora)",
     ],
-    realData: "GCT 335ms caminata vs 251ms carrera — Connect no distingue",
+    realData: "Distingue caminata (335 ms) de carrera (251 ms) y qué hacer con cada dato",
     evidence: [
       { level: 3, cite: "Heiderscheit et al. (2011) · Med Sci Sports Exerc", finding: "Aumentar cadencia 5–10% reduce fuerzas de impacto hasta 20%" },
       { level: 2, cite: "Aubol (2026) · J Sci Med Sport", finding: "GCT reducido correlaciona con menor fuerza en tendón de Aquiles" },
@@ -167,7 +134,7 @@ export const MODULES: Module[] = [
       "Señales de recaída: qué sensaciones detienen el plan",
       "Progresión de vuelta al volumen post-lesión",
     ],
-    realData: "Desgarro sóleo 49% en cada recomendación de José",
+    realData: "Tu historial de lesiones, presente en cada recomendación de carga",
     evidence: [
       { level: 3, cite: "Alfredson et al. (1998) · Am J Sports Med", finding: "Protocolo excéntrico de sóleo: 12 semanas, 100% de atletas vs cirugía" },
       { level: 2, cite: "Beyer et al. (2015) · Am J Sports Med", finding: "Ejercicio excéntrico > PRP en tendinopatía a 6 meses" },
@@ -184,7 +151,7 @@ export const MODULES: Module[] = [
       "Alerta proteica: <1.6 g/kg en días >15 km",
       "Timing de macros: pre/post sesión por tipo",
     ],
-    realData: "1,597 kcal BMR · 109g proteína/día · 68 kg",
+    realData: "Cálculo personalizado: BMR, proteína diaria y balance según tu peso",
     evidence: [
       { level: 3, cite: "Morton et al. (2018) · Br J Sports Med", finding: "Meta-análisis: 1.6 g/kg/día umbral mínimo para síntesis proteica" },
       { level: 2, cite: "Impey et al. (2018) · Eur J Sport Sci", finding: "'Train low, compete high': periodizar carbohidratos mejora mitocondrias" },
@@ -201,7 +168,7 @@ export const MODULES: Module[] = [
       "Sueño profundo + REM vs carga de entrenamiento",
       "Ajuste automático del plan si ACWR > 1.3 o sueño <6h",
     ],
-    realData: "Z4% bajó de 33.7% → 0.6% en una semana",
+    realData: "Caso real: tiempo en zona alta de 33.7% → 0.6% en una semana",
     evidence: [
       { level: 3, cite: "Simpson et al. (2017) · Sports Med", finding: "Sueño 8h mejora tiempo de reacción 15%" },
       { level: 2, cite: "Mujika & Padilla (2003) · Sports Med", finding: "Ciclos carga/descarga 30% cada 4 sem optimizan supercompensación" },
@@ -218,9 +185,9 @@ export const MODULES: Module[] = [
       "Abstract + cita APA formateada por recomendación",
       "Caché de 7 días para keywords frecuentes",
     ],
-    realData: "9 papers integrados en reportes activos",
+    realData: "Cada consejo enlaza al estudio que lo respalda",
     evidence: [
-      { level: 3, cite: "Diferencial exclusivo", finding: "Ninguna app del mercado vincula recomendaciones con literatura primaria" },
+      { level: 3, cite: "Nuestro diferencial", finding: "Pocas apps vinculan cada recomendación con literatura científica primaria" },
     ],
   },
 ];
@@ -228,20 +195,20 @@ export const MODULES: Module[] = [
 export const REAL_DATA_CARDS = [
   {
     headline: "80%",
-    sub: "de sesiones en Z4–Z5",
-    body: "Connect nunca alertó. El agente lo detectó en el primer análisis y vinculó la inversión de zonas con el desgarro de sóleo previo (Seiler & Kjerland, 2006).",
+    sub: "del tiempo en zona alta",
+    body: "El primer análisis de historial lo detectó y lo vinculó con una lesión previa de sóleo. Una señal que es fácil pasar por alto sin que alguien la interprete por ti (Seiler & Kjerland, 2006).",
     tag: "Historial — 17 sesiones desde dic 2025",
   },
   {
     headline: "0.6%",
-    sub: "Z4 en sesión del viernes",
-    body: "En 3 días el corredor bajó de 33.7% Z4 a 0.6%. Herramienta: walk-run guiado por FC real con umbral 138–151 lpm. Pace resultante: 8:08–9:04/km.",
+    sub: "zona alta en la sesión del viernes",
+    body: "En 3 días bajó de 33.7% a 0.6%. La herramienta: caminar-correr guiado por la frecuencia cardíaca real, con umbral 138–151 lpm. Ritmo resultante: 8:08–9:04/km.",
     tag: "Semana 1 de corrección — may 12–17",
   },
   {
     headline: "7.18 cm",
-    sub: "Oscilación vertical (↓ desde 8.3)",
-    body: "Bajando la intensidad a Z2, la oscilación vertical mejoró 13% en una semana. Menor rebote = menor carga en sóleo. Agente correlacionó la mejora con cadencia mantenida en 153 spm.",
+    sub: "rebote al correr (↓ desde 8.3)",
+    body: "Bajando la intensidad, el rebote vertical mejoró 13% en una semana. Menos rebote = menos carga en el sóleo. Liebre correlacionó la mejora con la cadencia mantenida en 153 pasos por minuto.",
     tag: "Running dynamics — may 15",
   },
 ] as const;
@@ -269,7 +236,7 @@ export const PLANS = [
       "Historial de 6 meses",
     ],
     footnote:
-      "Garmin Connect+ ($8.99) muestra datos sin interpretar. One Running ($14.99) hace planes adaptativos pero NO visualiza tu HRV, sueño ni Body Battery.",
+      "Para empezar: lo esencial para saber, cada mañana, qué hacer con los datos que tu reloj ya captura.",
   },
   {
     tier: "Pro",
@@ -285,6 +252,6 @@ export const PLANS = [
       "Historial completo sin límite",
     ],
     footnote:
-      "Entrenador personal de running: $150–400/mes — sin acceso a datos Garmin ni literatura científica integrada",
+      "Todo el análisis de Liebre, por una fracción de lo que cuesta un entrenador personal ($150–400/mes) — y con la ciencia que puedes verificar.",
   },
 ] as const;
