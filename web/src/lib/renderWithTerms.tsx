@@ -7,8 +7,6 @@
  * pero en el UI esas definiciones viven en el tooltip de <Term>.
  */
 
-"use client";
-
 import { Term } from "@/components/dashboard/Term";
 import type { GlossaryKey } from "@/lib/glossary";
 
