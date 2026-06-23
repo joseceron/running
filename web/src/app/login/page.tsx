@@ -92,6 +92,16 @@ export default function LoginPage() {
     }
   };
 
+  // Mientras Firebase resuelve la sesión — no mostrar el formulario para
+  // evitar el flash de login cuando el usuario ya está autenticado.
+  if (loading) {
+    return (
+      <main className="min-h-screen flex items-center justify-center bg-bg-page">
+        <span className="text-ink-tertiary text-sm">Cargando…</span>
+      </main>
+    );
+  }
+
   return (
     <main className="min-h-screen flex flex-col bg-bg-page text-ink-primary">
       <nav className="px-4 md:px-8 py-4 border-b border-rule/60">
