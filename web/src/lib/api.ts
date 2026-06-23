@@ -185,6 +185,55 @@ export type Sleep = {
   time_in_bed_min: number | null;
 };
 
+export type BodyComposition = {
+  id: number;
+  measured_at: string;
+  weight_kg: number | null;
+  bmi: number | null;
+  body_fat_pct: number | null;
+  subcutaneous_fat_pct: number | null;
+  visceral_fat: number | null;
+  fat_free_weight_kg: number | null;
+  skeletal_muscle_pct: number | null;
+  muscle_mass_kg: number | null;
+  bone_mass_kg: number | null;
+  body_water_pct: number | null;
+  bmr_kcal: number | null;
+  metabolic_age: number | null;
+  protein_pct: number | null;
+  notes: string | null;
+};
+
+export type BodyCompositionHistory = {
+  entries: BodyComposition[];
+};
+
+export type ProgressPoint = {
+  date: string;
+  hrv_ms: number;
+};
+
+export type WeeklyProgressPoint = {
+  week_start: string;
+  executed_km: number | null;
+  avg_hrv: number | null;
+  acwr: number | null;
+};
+
+export type BodyProgressPoint = {
+  date: string;
+  weight_kg: number | null;
+  body_fat_pct: number | null;
+  muscle_mass_kg: number | null;
+};
+
+export type Progress = {
+  hrv_nights: ProgressPoint[];
+  weekly: WeeklyProgressPoint[];
+  body: BodyProgressPoint[];
+  summary: { narrative: string };
+};
+
 export type Dashboard = {
   profile: Profile;
   hrv: HRV;
@@ -349,6 +398,8 @@ export type Report = {
 
 export const liebreApi = {
   dashboard: () => fetchJson<Dashboard>("/v1/users/me/dashboard"),
+  progress: () => fetchJson<Progress>("/v1/users/me/progress"),
+  bodyCompositionHistory: () => fetchJson<BodyCompositionHistory>("/v1/users/me/body-composition"),
   profile: () => fetchJson<Profile>("/v1/users/me/profile"),
   hrv: () => fetchJson<HRV>("/v1/users/me/hrv"),
   weekly: () => fetchJson<Weekly>("/v1/users/me/weekly"),
@@ -455,6 +506,12 @@ export const liebreAuthed = {
     _authedFetch<void>(
       "/v1/users/me",
       { method: "DELETE", body: JSON.stringify({ confirm: "DELETE" }) },
+      idToken,
+    ),
+  postBodyComposition: (body: Omit<BodyComposition, "id">, idToken: string | null) =>
+    _authedFetch<BodyComposition>(
+      "/v1/users/me/body-composition",
+      { method: "POST", body: JSON.stringify(body) },
       idToken,
     ),
   // Detecta si el usuario YA tiene perfil completado (200) o necesita onboarding (404).

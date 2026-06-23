@@ -19,6 +19,7 @@ import type {
   Diagnosis,
   HRV,
   Profile,
+  Progress,
   Report,
   UpcomingTrainings,
   Weekly,
@@ -66,6 +67,7 @@ export const liebreApiServer = {
     _fetch<ActivityDetail>(`/v1/users/me/activities/${id}`),
   report: (date?: string) =>
     _fetch<Report>(_withDate("/v1/users/me/report", date)),
+  progress: () => _fetch<Progress>("/v1/users/me/progress"),
 };
 
 /** Helper para Server Components: detecta si el usuario tiene cookie de

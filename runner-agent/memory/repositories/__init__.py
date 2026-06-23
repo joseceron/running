@@ -15,6 +15,7 @@ Uso típico:
 """
 
 from memory.repositories import (
+    body_composition,
     hrv,
     nutrition,
     runner_profile,
@@ -25,6 +26,7 @@ from memory.repositories import (
 )
 
 __all__ = [
+    "body_composition",
     "hrv",
     "nutrition",
     "runner_profile",

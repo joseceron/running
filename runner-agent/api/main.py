@@ -17,6 +17,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from api.routers import (
     activities,
+    body_composition,
     cronologia,
     dashboard,
     diagnosis,
@@ -55,6 +56,7 @@ app.include_router(cronologia.router, prefix=settings.api_v1_prefix)
 app.include_router(activities.router, prefix=settings.api_v1_prefix)
 app.include_router(report.router, prefix=settings.api_v1_prefix)
 app.include_router(sync.router, prefix=settings.api_v1_prefix)
+app.include_router(body_composition.router, prefix=settings.api_v1_prefix)
 
 
 @app.get("/", include_in_schema=False)

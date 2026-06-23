@@ -236,6 +236,44 @@ class Activity(Base):
     )
 
 
+class BodyComposition(Base):
+    """Mediciones de composición corporal desde báscula inteligente.
+
+    Se registra ~1 vez/semana (lunes mañana, en ayunas).
+    Permite ver la curva de adaptación: grasa ↓, masa muscular ↑.
+    """
+
+    __tablename__ = "body_composition"
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
+    user_id: Mapped[str] = mapped_column(
+        String(128), ForeignKey("users.user_id", ondelete="CASCADE"), nullable=False
+    )
+    measured_at: Mapped[date] = mapped_column(Date, nullable=False)
+    weight_kg: Mapped[Optional[float]] = mapped_column(Float)
+    bmi: Mapped[Optional[float]] = mapped_column(Float)
+    body_fat_pct: Mapped[Optional[float]] = mapped_column(Float)
+    subcutaneous_fat_pct: Mapped[Optional[float]] = mapped_column(Float)
+    visceral_fat: Mapped[Optional[float]] = mapped_column(Float)
+    fat_free_weight_kg: Mapped[Optional[float]] = mapped_column(Float)
+    skeletal_muscle_pct: Mapped[Optional[float]] = mapped_column(Float)
+    muscle_mass_kg: Mapped[Optional[float]] = mapped_column(Float)
+    bone_mass_kg: Mapped[Optional[float]] = mapped_column(Float)
+    body_water_pct: Mapped[Optional[float]] = mapped_column(Float)
+    bmr_kcal: Mapped[Optional[int]] = mapped_column(Integer)
+    metabolic_age: Mapped[Optional[int]] = mapped_column(Integer)
+    protein_pct: Mapped[Optional[float]] = mapped_column(Float)
+    notes: Mapped[Optional[str]] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+    __table_args__ = (
+        UniqueConstraint("user_id", "measured_at", name="uq_body_comp_user_date"),
+        Index("ix_body_comp_user_date", "user_id", "measured_at"),
+    )
+
+
 class ScienceCache(Base):
     """Caché compartido de papers de Scopus/WoS — NO contiene user_id."""
 

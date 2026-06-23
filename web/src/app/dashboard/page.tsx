@@ -13,6 +13,7 @@ import { InsightSection } from "@/components/dashboard/InsightCards";
 import { TodayActionCard } from "@/components/dashboard/TodayActionCard";
 import { NutritionCard } from "@/components/dashboard/NutritionCard";
 import { SleepCard } from "@/components/dashboard/SleepCard";
+import { ProgressCard } from "@/components/dashboard/ProgressCard";
 
 export const dynamic = "force-dynamic";
 
@@ -32,8 +33,9 @@ export default async function DashboardPage({
   let diagnosis = null;
   let cronologia = null;
   let report = null;
+  let progress = null;
   try {
-    [data, diagnosis, cronologia, report] = await Promise.all([
+    [data, diagnosis, cronologia, report, progress] = await Promise.all([
       liebreApiServer.dashboard(),
       liebreApiServer.diagnosis(safeDate).catch((e) => {
         console.error("diagnosis fetch failed", e);
@@ -45,6 +47,10 @@ export default async function DashboardPage({
       }),
       liebreApiServer.report(safeDate).catch((e) => {
         console.error("report fetch failed", e);
+        return null;
+      }),
+      liebreApiServer.progress().catch((e) => {
+        console.error("progress fetch failed", e);
         return null;
       }),
     ]);
@@ -119,6 +125,13 @@ export default async function DashboardPage({
           {data.sleep && (
             <section className="grid md:grid-cols-3 gap-4 mt-4">
               <SleepCard sleep={data.sleep} />
+            </section>
+          )}
+
+          {/* CURVA DE ADAPTACIÓN — tendencia HRV + volumen + composición corporal */}
+          {progress && (
+            <section className="grid grid-cols-1 gap-4 mt-4">
+              <ProgressCard progress={progress} />
             </section>
           )}
 
