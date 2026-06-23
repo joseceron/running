@@ -208,6 +208,19 @@ class NutritionOut(BaseModel):
     citation: str = "ACSM Joint Position Statement (2007) · Burke (2007) Sports Nutr Series"
 
 
+class PhysioContextOut(BaseModel):
+    """Base fisiológica que justifica las duraciones recomendadas en today_action."""
+    z2_hr_low: int
+    z2_hr_high: int
+    max_hr: int
+    resting_hr: int
+    goal_pace_per_km: str       # "5:13/km"
+    weeks_to_goal: int
+    training_phase: str          # "Base" / "Construcción" / "Pico" / "Tapering"
+    session_duration_rationale: str
+    citation: str = "Karvonen (1957) · Seiler (2010) · Esteve-Lanao (2007)"
+
+
 class ReportOut(BaseModel):
     date: DateT
     today_action: TodayActionOut
@@ -219,6 +232,7 @@ class ReportOut(BaseModel):
     interpretation: list[str] = Field(default_factory=list)
     insights: InsightsOut | None = None  # diferencial científico
     nutrition: NutritionOut | None = None  # diferencial: nutrición + monetización Luz Dálida
+    physio_context: PhysioContextOut | None = None
 
 
 # ─── Helpers ─────────────────────────────────────────────
@@ -244,11 +258,16 @@ def _read_latest_activity(user_id: str) -> dict | None:
         return None
 
 
-def _is_walk(distance_km: float, duration_secs: int) -> bool:
+def _is_walk(distance_km: float, duration_secs: int, activity_type: str = "") -> bool:
+    """Caminata si Garmin lo tipifica explícitamente como walking/hiking,
+    o si el pace supera 11:00/km (660 s/km). Z2 lento (~9-10:30/km) no
+    es caminata — es trote aeróbico controlado por FC."""
+    if activity_type in ("walking", "hiking", "walk"):
+        return True
     if distance_km <= 0 or duration_secs <= 0:
         return False
     pace = duration_secs / distance_km
-    return pace > 540  # > 9:00/km
+    return pace > 660  # > 11:00/km
 
 
 # ─── Insights: FatMax por zona ─────────────────────────────
@@ -614,6 +633,75 @@ def _build_polarization(activity: dict) -> PolarizationOut | None:
     )
 
 
+def _build_physio_context(profile, target: DateT) -> PhysioContextOut | None:
+    """Calcula Z2 (Karvonen 60-70% HRR), semanas al objetivo y fase de entrenamiento."""
+    if not profile:
+        return None
+    max_hr = int(profile.max_hr or 190)
+    rhr = int(profile.resting_hr or 50)
+    hrr = max_hr - rhr
+    z2_low = round(rhr + 0.60 * hrr)
+    z2_high = round(rhr + 0.70 * hrr)
+
+    # Semanas al objetivo
+    goal_date = None
+    if profile.goal_date:
+        try:
+            from datetime import date as _date
+            goal_date = _date.fromisoformat(str(profile.goal_date)[:10])
+        except Exception:
+            pass
+    weeks_to_goal = max(0, (goal_date - target).days // 7) if goal_date else 0
+
+    # Pace objetivo: goal_time_secs / 21.1 km
+    goal_secs = int(profile.goal_time_secs or 6600)
+    pace_secs = goal_secs / 21.1
+    pace_min = int(pace_secs // 60)
+    pace_sec = int(pace_secs % 60)
+    goal_pace = f"{pace_min}:{pace_sec:02d}/km"
+
+    # Fase de entrenamiento según semanas restantes
+    if weeks_to_goal >= 16:
+        phase = "Base"
+        rationale = (
+            f"Fase base: {weeks_to_goal} semanas al objetivo. "
+            f"Prioridad: construir aeróbico en Z2 ({z2_low}–{z2_high} lpm). "
+            "Sesiones Z2 de 55-65 min y rodaje largo de 75-90 min."
+        )
+    elif weeks_to_goal >= 10:
+        phase = "Construcción"
+        rationale = (
+            f"Fase construcción: {weeks_to_goal} semanas al objetivo. "
+            f"Z2 ({z2_low}–{z2_high} lpm) 60-70 min, largo 85-100 min. "
+            "Añadir 1 sesión de tempo semanal (20 min a Z3)."
+        )
+    elif weeks_to_goal >= 4:
+        phase = "Pico"
+        rationale = (
+            f"Fase pico: {weeks_to_goal} semanas al objetivo. "
+            f"Z2 ({z2_low}–{z2_high} lpm) 65-75 min, largo 100-110 min. "
+            "Simulacros de ritmo objetivo los sábados."
+        )
+    else:
+        phase = "Tapering"
+        rationale = (
+            f"Tapering: {weeks_to_goal} semana(s) al objetivo. "
+            "Reducir volumen 30-40%, mantener intensidad puntual. "
+            "Prioridad: piernas frescas el día de la carrera."
+        )
+
+    return PhysioContextOut(
+        z2_hr_low=z2_low,
+        z2_hr_high=z2_high,
+        max_hr=max_hr,
+        resting_hr=rhr,
+        goal_pace_per_km=goal_pace,
+        weeks_to_goal=weeks_to_goal,
+        training_phase=phase,
+        session_duration_rationale=rationale,
+    )
+
+
 # ─── Endpoint ────────────────────────────────────────────
 
 
@@ -763,6 +851,7 @@ def get_report(
             "avg_stride_m": latest.get("avg_stride_m"),
             "avg_gct_ms": latest.get("avg_gct_ms"),
             "zone_distribution_pct": latest.get("zone_distribution_pct"),
+            "type_key": latest.get("type_key", ""),
         }
 
     biomech: BiomechanicsOut | None = None
@@ -770,6 +859,7 @@ def get_report(
         is_walk = _is_walk(
             biomech_source.get("distance_km") or 0,
             biomech_source.get("duration_secs") or 0,
+            biomech_source.get("type_key", ""),
         )
         biomech = BiomechanicsOut(
             cadence_spm=int(biomech_source["avg_cadence"]) if biomech_source.get("avg_cadence") else None,
@@ -784,9 +874,10 @@ def get_report(
     nights = hrv_repo.get_recent(db, user_id, days=14)
     baseline = hrv_repo.get_baseline(db, user_id)
     latest_hrv = nights[0].hrv_rmssd if nights else None
-    # Determinar si la HRV más reciente es de hoy
+    # Garmin registra el HRV de la noche con la fecha del día anterior al despertar.
+    # Aceptamos el registro más reciente si es de hoy o de ayer.
     hrv_today = None
-    if nights and nights[0].date == target:
+    if nights and nights[0].date >= target - timedelta(days=1):
         hrv_today = nights[0].hrv_rmssd
 
     hrv_state = "sin registro"
@@ -993,6 +1084,8 @@ def get_report(
         is_today=is_today,
     )
 
+    physio_context = _build_physio_context(profile, target)
+
     return ReportOut(
         date=target,
         today_action=today_action,
@@ -1004,4 +1097,5 @@ def get_report(
         interpretation=interp,
         insights=insights,
         nutrition=nutrition,
+        physio_context=physio_context,
     )

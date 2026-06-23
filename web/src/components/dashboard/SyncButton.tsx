@@ -5,7 +5,6 @@
 
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { useAuth } from "@/lib/auth-context";
@@ -13,7 +12,6 @@ import { useAuth } from "@/lib/auth-context";
 type Status = "idle" | "syncing" | "ok" | "error";
 
 export function SyncButton({ compact = false }: { compact?: boolean }) {
-  const router = useRouter();
   const { idToken } = useAuth();
   const [status, setStatus] = useState<Status>("idle");
   const [msg, setMsg] = useState<string>("");
@@ -45,9 +43,8 @@ export function SyncButton({ compact = false }: { compact?: boolean }) {
           data.cronologia_ok ? "OK" : "—"
         } · actividad ${data.activity_ok ? "OK" : "—"} · ${data.duration_secs}s`
       );
-      // Recarga server components con los nuevos datos
-      router.refresh();
-      setTimeout(() => setStatus("idle"), 4000);
+      // Hard reload para garantizar datos frescos (incluye VFC nocturna)
+      setTimeout(() => window.location.reload(), 1200);
     } catch (e) {
       setStatus("error");
       setMsg(e instanceof Error ? e.message : String(e));

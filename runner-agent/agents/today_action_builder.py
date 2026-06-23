@@ -26,12 +26,12 @@ from api.utils.timezone import local_today
 # runner_profile.weekly_plan (JSONB) y se inyecta via param `weekday_plan`
 # en build_today_action().
 DEFAULT_WEEKDAY_PLAN: dict[int, tuple[str, str]] = {
-    0: ("train", "Fuerza · 45 min"),
-    1: ("train", "Trote suave Z2 · 40-50 min"),
+    0: ("train", "Fuerza + Pliometría · 50 min"),
+    1: ("train", "Trote suave Z2 · 55-65 min"),
     2: ("rest", "Descanso o movilidad"),
-    3: ("train", "Fuerza · 45 min"),
-    4: ("train", "Trote suave Z2 · 40-50 min"),
-    5: ("train", "Rodaje largo Z2 · 60-80 min"),
+    3: ("train", "Fuerza + Pliometría · 50 min"),
+    4: ("train", "Trote suave Z2 · 55-65 min"),
+    5: ("train", "Rodaje largo Z2 · 75-90 min"),
     6: ("rest", "Descanso programado"),
 }
 
