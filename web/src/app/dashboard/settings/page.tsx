@@ -96,6 +96,8 @@ export default function SettingsPage() {
         onError={(m) => setStatus({ kind: "error", msg: m })}
       />
 
+      <BodyCompositionSection idToken={idToken} onSaved={() => setStatus({ kind: "ok", msg: "Medición guardada. Visible en la curva de adaptación." })} onError={(m) => setStatus({ kind: "error", msg: m })} />
+
       <GoalSection
         profile={profile}
         idToken={idToken}
@@ -336,6 +338,110 @@ function GoalSection({
         </Row>
       </div>
       <SaveButton busy={busy} onClick={save} />
+    </Section>
+  );
+}
+
+function BodyCompositionSection({
+  idToken,
+  onSaved,
+  onError,
+}: {
+  idToken: string | null;
+  onSaved: () => void;
+  onError: (m: string) => void;
+}) {
+  const today = new Date().toISOString().slice(0, 10);
+  const [date, setDate] = useState(today);
+  const [fields, setFields] = useState({
+    weight_kg: "",
+    bmi: "",
+    body_fat_pct: "",
+    subcutaneous_fat_pct: "",
+    visceral_fat: "",
+    muscle_mass_kg: "",
+    skeletal_muscle_pct: "",
+    fat_free_weight_kg: "",
+    body_water_pct: "",
+    bone_mass_kg: "",
+    bmr_kcal: "",
+    metabolic_age: "",
+    protein_pct: "",
+  });
+  const [busy, setBusy] = useState(false);
+
+  const set = (k: keyof typeof fields, v: string) =>
+    setFields((prev) => ({ ...prev, [k]: v }));
+  const n = (s: string) => { const v = parseFloat(s); return isNaN(v) ? null : v; };
+
+  const save = async () => {
+    setBusy(true);
+    try {
+      await liebreAuthed.postBodyComposition(
+        {
+          measured_at: date,
+          weight_kg: n(fields.weight_kg),
+          bmi: n(fields.bmi),
+          body_fat_pct: n(fields.body_fat_pct),
+          subcutaneous_fat_pct: n(fields.subcutaneous_fat_pct),
+          visceral_fat: n(fields.visceral_fat),
+          muscle_mass_kg: n(fields.muscle_mass_kg),
+          skeletal_muscle_pct: n(fields.skeletal_muscle_pct),
+          fat_free_weight_kg: n(fields.fat_free_weight_kg),
+          body_water_pct: n(fields.body_water_pct),
+          bone_mass_kg: n(fields.bone_mass_kg),
+          bmr_kcal: n(fields.bmr_kcal) != null ? Math.round(n(fields.bmr_kcal)!) : null,
+          metabolic_age: n(fields.metabolic_age) != null ? Math.round(n(fields.metabolic_age)!) : null,
+          protein_pct: n(fields.protein_pct),
+          notes: null,
+        },
+        idToken,
+      );
+      onSaved();
+    } catch (e) {
+      onError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const FIELDS: { k: keyof typeof fields; label: string; placeholder: string }[] = [
+    { k: "weight_kg",           label: "Peso (kg)",               placeholder: "68.90" },
+    { k: "bmi",                 label: "IMC",                     placeholder: "25.3" },
+    { k: "body_fat_pct",        label: "Grasa corporal (%)",      placeholder: "19.2" },
+    { k: "subcutaneous_fat_pct",label: "Grasa subcutánea (%)",    placeholder: "16.8" },
+    { k: "visceral_fat",        label: "Grasa visceral",          placeholder: "8" },
+    { k: "muscle_mass_kg",      label: "Masa muscular (kg)",      placeholder: "52.81" },
+    { k: "skeletal_muscle_pct", label: "Músculo esquelético (%)", placeholder: "52.1" },
+    { k: "fat_free_weight_kg",  label: "Peso libre de grasa (kg)",placeholder: "55.64" },
+    { k: "body_water_pct",      label: "Agua corporal (%)",       placeholder: "58.2" },
+    { k: "bone_mass_kg",        label: "Masa ósea (kg)",          placeholder: "2.78" },
+    { k: "bmr_kcal",            label: "TMB (kcal)",              placeholder: "1587" },
+    { k: "metabolic_age",       label: "Edad metabólica",         placeholder: "37" },
+    { k: "protein_pct",         label: "Proteína (%)",            placeholder: "18.4" },
+  ];
+
+  return (
+    <Section
+      title="Composición corporal"
+      description="Registra los datos de tu báscula inteligente. Recomendado: lunes por la mañana en ayunas, mismas condiciones siempre."
+    >
+      <Row label="Fecha de medición">
+        <Input value={date} onChange={setDate} type="date" />
+      </Row>
+      <div className="grid grid-cols-2 gap-3">
+        {FIELDS.map(({ k, label, placeholder }) => (
+          <Row key={k} label={label}>
+            <Input
+              value={fields[k]}
+              onChange={(v) => set(k, v)}
+              placeholder={placeholder}
+              type="number"
+            />
+          </Row>
+        ))}
+      </div>
+      <SaveButton busy={busy} onClick={save} label="Guardar medición" />
     </Section>
   );
 }
