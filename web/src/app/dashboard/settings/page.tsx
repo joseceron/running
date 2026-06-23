@@ -14,6 +14,7 @@ import { useEffect, useState } from "react";
 import { liebreAuthed, type Profile, type ProfilePatchPayload } from "@/lib/api";
 import { CITIES, findCity } from "@/lib/cities";
 import { useAuth } from "@/lib/auth-context";
+import { Sidebar } from "@/components/dashboard/Sidebar";
 
 type Status = { kind: "ok" | "error"; msg: string } | null;
 
@@ -35,96 +36,103 @@ export default function SettingsPage() {
       .finally(() => setLoading(false));
   }, [authLoading, idToken]);
 
+  const showToast = (s: Status) => {
+    setStatus(s);
+    if (s?.kind === "ok") setTimeout(() => setStatus(null), 4000);
+  };
+
   if (loading) {
     return (
-      <main className="p-8">
-        <p className="text-sm text-ink-secondary">Cargando perfil…</p>
-      </main>
+      <div className="min-h-screen bg-bg-page">
+        <Sidebar userName="" />
+        <main className="md:ml-[var(--sidebar-width)] p-8">
+          <p className="text-sm text-ink-secondary">Cargando perfil…</p>
+        </main>
+      </div>
     );
   }
 
   if (!profile) {
     return (
-      <main className="p-8">
-        <p className="text-sm text-ink-secondary">
-          Tu perfil aún no está creado.{" "}
-          <a
-            className="underline text-accent-brand"
-            href="/onboarding"
-          >
-            Completar onboarding
-          </a>
-        </p>
-      </main>
+      <div className="min-h-screen bg-bg-page">
+        <Sidebar userName="" />
+        <main className="md:ml-[var(--sidebar-width)] p-8">
+          <p className="text-sm text-ink-secondary">
+            Tu perfil aún no está creado.{" "}
+            <a className="underline text-accent-brand" href="/onboarding">
+              Completar onboarding
+            </a>
+          </p>
+        </main>
+      </div>
     );
   }
 
   return (
-    <main className="max-w-3xl mx-auto px-4 md:px-8 py-8 md:py-12">
-      <header className="mb-6">
-        <h1 className="text-2xl font-semibold">Ajustes</h1>
-        <p className="text-sm text-ink-secondary">
-          Cambia tu perfil, reconecta Garmin o borra tu cuenta.
-        </p>
-      </header>
+    <div className="min-h-screen bg-bg-page">
+      <Sidebar userName={profile.name} />
 
+      {/* Toast fijo abajo — visible sin hacer scroll */}
       {status && (
         <div
-          className="mb-6 p-3 rounded-md text-sm"
+          className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-5 py-3 rounded-xl shadow-lg text-sm font-medium max-w-sm w-[calc(100%-2rem)] text-center pointer-events-none"
           style={{
-            background:
-              status.kind === "ok"
-                ? "color-mix(in srgb, var(--semantic-positive) 12%, transparent)"
-                : "color-mix(in srgb, var(--semantic-danger) 12%, transparent)",
-            color:
-              status.kind === "ok"
-                ? "var(--semantic-positive)"
-                : "var(--semantic-danger)",
+            background: status.kind === "ok" ? "var(--hrv-balanced)" : "var(--semantic-danger)",
+            color: "white",
           }}
         >
           {status.msg}
         </div>
       )}
 
-      <ProfileSection
-        profile={profile}
-        idToken={idToken}
-        onSaved={(p) => {
-          setProfile(p);
-          setStatus({ kind: "ok", msg: "Perfil actualizado." });
-        }}
-        onError={(m) => setStatus({ kind: "error", msg: m })}
-      />
+      <main className="md:ml-[var(--sidebar-width)] pb-24 md:pb-0">
+        <div className="max-w-3xl mx-auto px-4 md:px-8 py-8 md:py-12">
+          <header className="mb-6">
+            <h1 className="text-2xl font-semibold">Ajustes</h1>
+            <p className="text-sm text-ink-secondary">
+              Cambia tu perfil, reconecta Garmin o borra tu cuenta.
+            </p>
+          </header>
 
-      <BodyCompositionSection idToken={idToken} onSaved={() => setStatus({ kind: "ok", msg: "Medición guardada. Visible en la curva de adaptación." })} onError={(m) => setStatus({ kind: "error", msg: m })} />
+          <ProfileSection
+            profile={profile}
+            idToken={idToken}
+            onSaved={(p) => { setProfile(p); showToast({ kind: "ok", msg: "Perfil actualizado." }); }}
+            onError={(m) => showToast({ kind: "error", msg: m })}
+          />
 
-      <GoalSection
-        profile={profile}
-        idToken={idToken}
-        onSaved={(p) => {
-          setProfile(p);
-          setStatus({ kind: "ok", msg: "Meta actualizada." });
-        }}
-        onError={(m) => setStatus({ kind: "error", msg: m })}
-      />
+          <BodyCompositionSection
+            idToken={idToken}
+            onSaved={() => showToast({ kind: "ok", msg: "Medición guardada. Visible en la curva de adaptación." })}
+            onError={(m) => showToast({ kind: "error", msg: m })}
+          />
 
-      <GarminSection
-        idToken={idToken}
-        onSaved={() => setStatus({ kind: "ok", msg: "Garmin reconectado." })}
-        onError={(m) => setStatus({ kind: "error", msg: m })}
-      />
+          <GoalSection
+            profile={profile}
+            idToken={idToken}
+            onSaved={(p) => { setProfile(p); showToast({ kind: "ok", msg: "Meta actualizada." }); }}
+            onError={(m) => showToast({ kind: "error", msg: m })}
+          />
 
-      <DangerSection
-        idToken={idToken}
-        onDeleted={() => router.replace("/login")}
-        onError={(m) => setStatus({ kind: "error", msg: m })}
-      />
-      {!isConfigured && (
-        <p className="text-[11px] text-ink-tertiary mt-6">
-          Modo demo: los cambios no persisten sin Firebase configurado.
-        </p>
-      )}
-    </main>
+          <GarminSection
+            idToken={idToken}
+            onSaved={() => showToast({ kind: "ok", msg: "Garmin reconectado." })}
+            onError={(m) => showToast({ kind: "error", msg: m })}
+          />
+
+          <DangerSection
+            idToken={idToken}
+            onDeleted={() => router.replace("/login")}
+            onError={(m) => showToast({ kind: "error", msg: m })}
+          />
+          {!isConfigured && (
+            <p className="text-[11px] text-ink-tertiary mt-6">
+              Modo demo: los cambios no persisten sin Firebase configurado.
+            </p>
+          )}
+        </div>
+      </main>
+    </div>
   );
 }
 
