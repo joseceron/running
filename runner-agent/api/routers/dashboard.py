@@ -14,12 +14,17 @@ from api.schemas.dashboard import (
     HRVNight,
     HRVOut,
     ProfileOut,
+    SleepOut,
     UpcomingTraining,
     UpcomingTrainingsOut,
     WeeklyEntry,
     WeeklyOut,
 )
+import logging
 from memory.repositories import hrv, runner_profile, weekly
+from data.garmin_client import GarminConnectClient
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/users/me", tags=["dashboard"])
 
@@ -189,6 +194,32 @@ def get_upcoming(
     return _build_upcoming(db, user_id)
 
 
+def _build_sleep(session: Session, user_id: str) -> SleepOut | None:
+    """Obtiene sueño de hoy desde Garmin. Falla silencioso — no rompe el dashboard."""
+    try:
+        client = GarminConnectClient.for_user(session, user_id)
+        today = local_today()
+        health = client.get_daily_health(today)
+        deep_s = health.get("sleep_deep_seconds") or 0
+        rem_s  = health.get("sleep_rem_seconds")  or 0
+        light_s = health.get("sleep_light_seconds") or 0
+        total_s = deep_s + rem_s + light_s
+        if total_s == 0:
+            return None
+        return SleepOut(
+            date=today,
+            total_min=round(total_s / 60),
+            deep_min=round(deep_s / 60),
+            rem_min=round(rem_s / 60),
+            light_min=round(light_s / 60),
+            awake_min=None,
+            sleep_score=health.get("sleep_score"),
+        )
+    except Exception:
+        logger.warning("Sleep fetch failed — skipping", exc_info=False)
+        return None
+
+
 @router.get(
     "/dashboard",
     response_model=DashboardOut,
@@ -213,4 +244,5 @@ def get_dashboard(
         weekly=_build_weekly(db, user_id),
         upcoming=_build_upcoming(db, user_id),
         days_to_goal=days_to_goal,
+        sleep=_build_sleep(db, user_id),
     )

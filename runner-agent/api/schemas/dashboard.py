@@ -194,6 +194,18 @@ class UpcomingTrainingsOut(BaseModel):
     sessions: list[UpcomingTraining]
 
 
+class SleepOut(BaseModel):
+    """Resumen de sueño nocturno con fases."""
+    date: DateT
+    total_min: int | None = None
+    deep_min: int | None = None
+    rem_min: int | None = None
+    light_min: int | None = None
+    awake_min: int | None = None
+    sleep_score: int | None = None
+    time_in_bed_min: int | None = None
+
+
 class DashboardOut(BaseModel):
     """Payload agregado consumido por la home del dashboard."""
 
@@ -204,3 +216,4 @@ class DashboardOut(BaseModel):
     days_to_goal: int | None = Field(
         None, description="Días desde hoy hasta la fecha de la meta"
     )
+    sleep: SleepOut | None = None

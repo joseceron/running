@@ -174,12 +174,24 @@ export type UpcomingTrainings = {
   sessions: UpcomingTraining[];
 };
 
+export type Sleep = {
+  date: string;
+  total_min: number | null;
+  deep_min: number | null;
+  rem_min: number | null;
+  light_min: number | null;
+  awake_min: number | null;
+  sleep_score: number | null;
+  time_in_bed_min: number | null;
+};
+
 export type Dashboard = {
   profile: Profile;
   hrv: HRV;
   weekly: Weekly;
   upcoming: UpcomingTrainings;
   days_to_goal: number | null;
+  sleep: Sleep | null;
 };
 
 async function fetchJson<T>(path: string, idToken?: string | null): Promise<T> {

@@ -39,6 +39,19 @@ const STATUS_COLOR: Record<HRV["status"], string> = {
   building_baseline: "var(--accent-brand)",
 };
 
+// Colores semánticos para cada punto según distancia al baseline
+const HRV_GREEN  = "var(--hrv-balanced)";   // ≥ baseline
+const HRV_YELLOW = "var(--semantic-warning)"; // reducido (< baseline pero > baseline - SD)
+const HRV_RED    = "var(--semantic-danger)";  // suprimido (< baseline - SD)
+const HRV_SD     = 4.7; // ms — desviación estándar típica usada en build_today_action
+
+function dotColor(v: number, baseline: number | null): string {
+  if (!baseline) return HRV_GREEN;
+  if (v >= baseline) return HRV_GREEN;
+  if (v >= baseline - HRV_SD) return HRV_YELLOW;
+  return HRV_RED;
+}
+
 function Sparkline({
   nights,
   baseline,
@@ -67,10 +80,6 @@ function Sparkline({
   const y = (v: number) =>
     H - pad.b - ((v - min) / range) * (H - pad.t - pad.b);
 
-  const points = values
-    .map((v, i) => `${x(i).toFixed(1)},${y(v).toFixed(1)}`)
-    .join(" ");
-
   // Etiquetas X: primera, media, última
   const xIndices = [0, Math.floor(values.length / 2), values.length - 1];
 
@@ -79,21 +88,12 @@ function Sparkline({
     { v: maxVal, label: `${Math.round(maxVal)} ms`, emphasis: false },
   ];
   if (baseline !== null) {
-    yTicks.push({
-      v: baseline,
-      label: `${Math.round(baseline)} ms`,
-      emphasis: true,
-    });
+    yTicks.push({ v: baseline, label: `${Math.round(baseline)} ms`, emphasis: true });
   }
   yTicks.push({ v: minVal, label: `${Math.round(minVal)} ms`, emphasis: false });
 
   return (
-    <svg
-      width="100%"
-      height={H}
-      viewBox={`0 0 ${W} ${H}`}
-      className="block"
-    >
+    <svg width="100%" height={H} viewBox={`0 0 ${W} ${H}`} className="block">
       {/* Banda del rango personal */}
       {refMin !== null && refMax !== null && (
         <rect
@@ -109,66 +109,67 @@ function Sparkline({
       {/* Línea baseline */}
       {baseline !== null && (
         <line
-          x1={pad.l}
-          y1={y(baseline)}
-          x2={W - pad.r}
-          y2={y(baseline)}
-          stroke="var(--ink-tertiary)"
-          strokeWidth={1}
-          strokeDasharray="3 3"
+          x1={pad.l} y1={y(baseline)} x2={W - pad.r} y2={y(baseline)}
+          stroke="var(--ink-tertiary)" strokeWidth={1} strokeDasharray="3 3"
         />
       )}
 
       {/* Etiquetas eje Y */}
       {yTicks.map((t, i) => (
         <text
-          key={i}
-          x={pad.l - 4}
-          y={y(t.v) + 3}
-          textAnchor="end"
-          fontSize={9}
+          key={i} x={pad.l - 4} y={y(t.v) + 3}
+          textAnchor="end" fontSize={9}
           fill={t.emphasis ? color : "var(--ink-tertiary)"}
-          fontFamily="Inter"
-          fontWeight={t.emphasis ? 600 : 400}
+          fontFamily="Inter" fontWeight={t.emphasis ? 600 : 400}
           style={{ fontVariantNumeric: "tabular-nums" }}
         >
           {t.label}
         </text>
       ))}
 
-      {/* Línea principal */}
-      <polyline
-        points={points}
-        fill="none"
-        stroke={color}
-        strokeWidth={2}
-        strokeLinejoin="round"
-        strokeLinecap="round"
-      />
+      {/* Segmentos de línea coloreados individualmente según el peor extremo */}
+      {values.slice(0, -1).map((v, i) => {
+        const c1 = dotColor(v, baseline);
+        const c2 = dotColor(values[i + 1], baseline);
+        // El segmento toma el color más alarmante de sus dos extremos
+        const segColor =
+          c1 === HRV_RED || c2 === HRV_RED ? HRV_RED :
+          c1 === HRV_YELLOW || c2 === HRV_YELLOW ? HRV_YELLOW :
+          HRV_GREEN;
+        return (
+          <line
+            key={`seg-${i}`}
+            x1={x(i).toFixed(1)} y1={y(v).toFixed(1)}
+            x2={x(i + 1).toFixed(1)} y2={y(values[i + 1]).toFixed(1)}
+            stroke={segColor} strokeWidth={2}
+            strokeLinecap="round" strokeLinejoin="round"
+          />
+        );
+      })}
 
-      {/* Dots con tooltip nativo */}
-      {values.map((v, i) => (
-        <circle
-          key={i}
-          cx={x(i)}
-          cy={y(v)}
-          r={i === values.length - 1 ? 3.5 : 2.5}
-          fill={color}
-        >
-          <title>{`${fmtShortDate(chronological[i].date)} · ${v} ms`}</title>
-        </circle>
-      ))}
+      {/* Dots coloreados por rango + tooltip con fecha y valor */}
+      {values.map((v, i) => {
+        const dc = dotColor(v, baseline);
+        const isLast = i === values.length - 1;
+        return (
+          <circle
+            key={i}
+            cx={x(i)} cy={y(v)}
+            r={isLast ? 4 : 3}
+            fill={dc}
+            stroke="white" strokeWidth={isLast ? 1.5 : 0}
+          >
+            <title>{`${fmtShortDate(chronological[i].date)} · ${v} ms`}</title>
+          </circle>
+        );
+      })}
 
       {/* Etiquetas eje X */}
       {xIndices.map((i) => (
         <text
-          key={`x-${i}`}
-          x={x(i)}
-          y={H - 5}
+          key={`x-${i}`} x={x(i)} y={H - 5}
           textAnchor={i === 0 ? "start" : i === values.length - 1 ? "end" : "middle"}
-          fontSize={9}
-          fill="var(--ink-tertiary)"
-          fontFamily="Inter"
+          fontSize={9} fill="var(--ink-tertiary)" fontFamily="Inter"
         >
           {fmtShortDate(chronological[i].date)}
         </text>

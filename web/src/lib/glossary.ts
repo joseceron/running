@@ -179,6 +179,28 @@ const _GLOSSARY_DATA = {
     long:
       "Tu baseline es el valor de referencia individual de una métrica (HRV, FC reposo, etc.) construido con tus propios datos de las últimas 2-4 semanas. Comparar contra tu baseline es siempre más útil que compararte con rangos poblacionales.",
   },
+  sueno_profundo: {
+    term: "Profundo",
+    short: "Fase de sueño más reparadora — reconstruye músculo, libera hormona del crecimiento.",
+    long: "El sueño profundo (N3 o SWS) es cuando el cerebro y el cuerpo se reparan físicamente. Se libera hormona del crecimiento, se sintetiza proteína muscular y se consolida la memoria implícita. Un corredor necesita ≥60 min por noche. Si es bajo, puede indicar alcohol, estrés o deuda de sueño.",
+    example: "61 min profundo = reparación muscular completa tras el entreno.",
+  },
+  sueno_rem: {
+    term: "REM",
+    short: "Sueño de movimientos oculares rápidos — consolida memoria motora y recuperación mental.",
+    long: "REM (Rapid Eye Movement) es la fase donde el cerebro procesa lo aprendido durante el día, incluyendo la memoria motora (técnica de carrera). También regula el estado de ánimo. Los corredores que no hacen suficiente REM pueden ver deterioro en la coordinación y el ritmo. Objetivo: ≥90 min por noche.",
+    example: "64 min REM = consolidación parcial. Objetivo: 90 min.",
+  },
+  sueno_ligero: {
+    term: "Ligero",
+    short: "Fase de transición — el grueso del sueño. No tan reparadora como profundo o REM.",
+    long: "El sueño ligero (N1 y N2) comprende la mayor parte del sueño total. Es transición entre vigilia, profundo y REM. Tiene valor — incluye husos de sueño que también consolidan aprendizaje — pero es la fase que más se sacrifica con el estrés o el alcohol. Tener demasiado ligero y poco profundo/REM es un patrón a mejorar.",
+  },
+  sueno_vigilia: {
+    term: "Vigilia",
+    short: "Momentos de despertar durante la noche. Normal si son breves.",
+    long: "Es normal despertarse varias veces por noche (el cerebro lo hace entre ciclos). El problema es cuando la vigilia total supera 30 min o hay muchos despertares largos — indica mala calidad de sueño, apnea, o necesidad de orinar frecuentemente. En Garmin aparece en rojo porque interrumpe los ciclos.",
+  },
   training_effect: {
     term: "Training Effect",
     short:

@@ -12,6 +12,7 @@ import { Cronologia24h } from "@/components/dashboard/Cronologia24h";
 import { InsightSection } from "@/components/dashboard/InsightCards";
 import { TodayActionCard } from "@/components/dashboard/TodayActionCard";
 import { NutritionCard } from "@/components/dashboard/NutritionCard";
+import { SleepCard } from "@/components/dashboard/SleepCard";
 
 export const dynamic = "force-dynamic";
 
@@ -113,6 +114,13 @@ export default async function DashboardPage({
             <HRVCard hrv={hrv} />
             <ProfileCard profile={profile} />
           </section>
+
+          {/* Sueño — fases de recuperación nocturna */}
+          {data.sleep && (
+            <section className="grid md:grid-cols-3 gap-4 mt-4">
+              <SleepCard sleep={data.sleep} />
+            </section>
+          )}
 
           {/* INSIGHTS CIENTÍFICOS — diferencial Liebre */}
           {report?.insights && <InsightSection insights={report.insights} />}
