@@ -29,12 +29,9 @@ function Sparkline({
 }) {
   if (values.length < 2) {
     return (
-      <div
-        className="flex items-center justify-center text-[11px] text-ink-tertiary"
-        style={{ height }}
-      >
-        Pocos datos
-      </div>
+      <svg width={220} height={height} viewBox={`0 0 220 ${height}`}>
+        <circle cx={110} cy={height / 2} r={3} fill={color} opacity={0.7} />
+      </svg>
     );
   }
 
@@ -205,14 +202,14 @@ export function ProgressCard({ progress }: Props) {
               latestLabel="última semana"
             />
           )}
-          {fatValues.length >= 2 ? (
+          {latestFat !== null ? (
             <MetricSparkCard
               label="Grasa corporal"
               unit="%"
               values={fatValues}
               color="var(--semantic-warning)"
               latest={latestFat}
-              latestLabel="última medición"
+              latestLabel={fatValues.length >= 2 ? "última medición" : "punto inicial"}
             />
           ) : (
             <div className="card p-3 flex flex-col gap-1.5 opacity-50 border-dashed">
@@ -220,14 +217,14 @@ export function ProgressCard({ progress }: Props) {
               <p className="text-[11px] text-ink-tertiary mt-1">Registra tu báscula para ver la curva</p>
             </div>
           )}
-          {muscleValues.length >= 2 ? (
+          {latestMuscle !== null ? (
             <MetricSparkCard
               label="Masa muscular"
               unit="kg"
               values={muscleValues}
               color="#22d3ee"
               latest={latestMuscle}
-              latestLabel="última medición"
+              latestLabel={muscleValues.length >= 2 ? "última medición" : "punto inicial"}
             />
           ) : (
             <div className="card p-3 flex flex-col gap-1.5 opacity-50 border-dashed">
