@@ -108,17 +108,17 @@ export default async function DashboardPage({
             )}
           </section>
 
+          {/* HRV + Perfil — justo después del diagnóstico (fuente primaria del análisis) */}
+          <section className="grid md:grid-cols-3 gap-4 mt-4">
+            <HRVCard hrv={hrv} />
+            <ProfileCard profile={profile} />
+          </section>
+
           {/* INSIGHTS CIENTÍFICOS — diferencial Liebre */}
           {report?.insights && <InsightSection insights={report.insights} />}
 
           {/* NUTRICIÓN — pilar diferencial + base para monetización Luz Dálida */}
           {report?.nutrition && <NutritionCard data={report.nutrition} />}
-
-          {/* HRV + Perfil */}
-          <section className="grid md:grid-cols-3 gap-4 mt-4">
-            <HRVCard hrv={hrv} />
-            <ProfileCard profile={profile} />
-          </section>
 
           {/* Cronología 24h */}
           {cronologia && (

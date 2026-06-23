@@ -4,6 +4,7 @@
  */
 
 import { CiteBadge } from "./CiteBadge";
+import { renderWithTerms } from "@/lib/renderWithTerms";
 import type { Diagnosis, HRV, Profile, Weekly } from "@/lib/api";
 
 const ALERT_DOT: Record<Diagnosis["alert_level"], string> = {
@@ -81,7 +82,7 @@ export function DiagnosticoDelDiaCard({
 
       {/* Cuerpo */}
       <p className="text-sm text-ink-primary leading-relaxed m-0 whitespace-pre-line">
-        {view.narrative}
+        {renderWithTerms(view.narrative)}
       </p>
 
       {showActionBlock ? (
