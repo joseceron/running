@@ -102,7 +102,7 @@ export function BodyLogModal({ onClose, onSaved }: Props) {
   }
 
   const inputClass =
-    "w-full text-sm bg-bg-card border border-rule rounded-lg px-3 py-2 text-ink-primary placeholder-ink-tertiary focus:outline-none focus:border-[var(--liebre-accent)] transition-colors";
+    "w-full text-sm bg-bg-card border border-rule rounded-lg px-3 py-2 text-ink-primary placeholder-ink-tertiary focus:outline-none focus:border-[var(--accent-brand)] transition-colors";
 
   return (
     <div
@@ -200,7 +200,7 @@ export function BodyLogModal({ onClose, onSaved }: Props) {
               disabled={saving}
               className="flex-1 py-2.5 rounded-xl text-sm font-semibold transition-colors"
               style={{
-                background: saving ? "var(--ink-tertiary)" : "var(--liebre-accent)",
+                background: saving ? "var(--ink-tertiary)" : "var(--accent-brand)",
                 color: "white",
                 opacity: saving ? 0.6 : 1,
               }}

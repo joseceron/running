@@ -29,6 +29,10 @@ export function AuthGuard({ children }: { children: ReactNode }) {
     // redirigir. Esto cubre el caso de un user que cierra y vuelve a abrir
     // sin haber completado el wizard.
     if (pathname?.startsWith("/onboarding")) return;
+    // El idToken se hidrata en un setState aparte del listener, así que puede
+    // llegar como null aunque ya haya user. Sin esto, la llamada iría sin
+    // Bearer → 401 → rebote espurio a /onboarding en el primer ciclo.
+    if (!idToken) return;
     liebreAuthed
       .getProfileOrNull(idToken)
       .then((profile) => {

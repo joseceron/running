@@ -29,7 +29,12 @@ function Sparkline({
 }) {
   if (values.length < 2) {
     return (
-      <svg width={220} height={height} viewBox={`0 0 220 ${height}`}>
+      <svg
+        width="100%"
+        height={height}
+        viewBox={`0 0 220 ${height}`}
+        className="block max-w-full"
+      >
         <circle cx={110} cy={height / 2} r={3} fill={color} opacity={0.7} />
       </svg>
     );
@@ -52,7 +57,12 @@ function Sparkline({
     .join(" ");
 
   return (
-    <svg width={w} height={height} viewBox={`0 0 ${w} ${height}`} style={{ overflow: "visible" }}>
+    <svg
+      width="100%"
+      height={height}
+      viewBox={`0 0 ${w} ${height}`}
+      className="block max-w-full"
+    >
       <path d={d} fill="none" stroke={color} strokeWidth={1.5} strokeLinejoin="round" strokeLinecap="round" />
       {showDots &&
         pts.map((p, i) => (
@@ -110,7 +120,7 @@ function MetricSparkCard({
           </p>
           <p className="text-[10px] text-ink-tertiary">{latestLabel ?? unit}</p>
         </div>
-        <div className="flex-1 min-w-0">
+        <div className="flex-1 min-w-0 overflow-hidden">
           <Sparkline values={values} color={color} height={36} showDots={values.length <= 10} />
         </div>
       </div>
@@ -161,9 +171,9 @@ export function ProgressCard({ progress }: Props) {
             onClick={() => setShowModal(true)}
             className="text-[11px] px-3 py-1.5 rounded-full font-medium transition-colors"
             style={{
-              background: "color-mix(in srgb, var(--liebre-accent) 12%, transparent)",
-              color: "var(--liebre-accent)",
-              border: "1px solid color-mix(in srgb, var(--liebre-accent) 30%, transparent)",
+              background: "color-mix(in srgb, var(--accent-brand) 12%, transparent)",
+              color: "var(--accent-brand)",
+              border: "1px solid color-mix(in srgb, var(--accent-brand) 30%, transparent)",
             }}
           >
             + Registrar báscula
@@ -174,7 +184,7 @@ export function ProgressCard({ progress }: Props) {
         {progress.summary.narrative && (
           <div
             className="text-[12px] text-ink-secondary leading-relaxed mb-4 px-3 py-2.5 rounded-lg"
-            style={{ background: "color-mix(in srgb, var(--liebre-accent) 6%, transparent)" }}
+            style={{ background: "color-mix(in srgb, var(--accent-brand) 6%, transparent)" }}
           >
             {progress.summary.narrative}
           </div>
@@ -197,7 +207,7 @@ export function ProgressCard({ progress }: Props) {
               label="Volumen semanal"
               unit="km"
               values={kmValues}
-              color="var(--liebre-accent)"
+              color="var(--accent-brand)"
               latest={latestKm}
               latestLabel="última semana"
             />

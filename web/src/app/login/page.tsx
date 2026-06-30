@@ -16,7 +16,7 @@ type Stage = "choose" | "phone-input" | "phone-code";
 
 export default function LoginPage() {
   const router = useRouter();
-  const { user, loading } = useAuth();
+  const { user, loading, idToken } = useAuth();
   const [stage, setStage] = useState<Stage>("choose");
   const [phone, setPhone] = useState("");
   const [code, setCode] = useState("");
@@ -31,10 +31,14 @@ export default function LoginPage() {
   // puede tardar 5-10s en cold start de Cloud Run y daba sensación de que
   // el botón no respondía).
   useEffect(() => {
-    if (!loading && user) {
+    // Esperamos a `idToken`, no solo a `user`: la cookie liebre_id_token que
+    // el SSR del dashboard lee se setea junto con idToken en el AuthProvider.
+    // Si redirigiéramos solo con `user`, el SSR podría correr sin Bearer y el
+    // AuthGuard llamaría a getProfileOrNull con idToken=null → rebote a /login.
+    if (!loading && user && idToken) {
       router.replace("/dashboard");
     }
-  }, [loading, user, router]);
+  }, [loading, user, idToken, router]);
 
   const handleGoogle = async () => {
     if (!isFirebaseConfigured) {
@@ -45,12 +49,15 @@ export default function LoginPage() {
     setError(null);
     try {
       await signInWithPopup(getFirebaseAuth(), googleProvider);
-      // Redirect optimista: AuthGuard valida perfil y redirige a /onboarding
-      // si falta. No esperamos el round-trip al backend aquí.
-      router.replace("/dashboard");
+      // NO redirigimos aquí: signInWithPopup resuelve antes de que el
+      // onAuthStateChanged del AuthProvider propague el user al contexto.
+      // Si navegáramos ya, el AuthGuard vería loading=false + user=null y
+      // rebotaría a /login (de ahí los múltiples intentos). Dejamos el
+      // redirect al efecto de arriba, que dispara cuando el user ya existe.
+      // Mantenemos busy=true para que el botón siga deshabilitado durante
+      // la transición.
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
-    } finally {
       setBusy(false);
     }
   };
@@ -165,14 +172,9 @@ export default function LoginPage() {
                 <GoogleLogo />
                 Continuar con Google
               </button>
-              <button
-                type="button"
-                onClick={() => setStage("phone-input")}
-                disabled={!isFirebaseConfigured}
-                className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-md font-medium text-sm bg-ink-primary text-white hover:opacity-90 transition disabled:opacity-50"
-              >
-                📱 Continuar con tu teléfono
-              </button>
+              {/* Login por teléfono deshabilitado: SMS aún no conectado.
+                  Reactivar restaurando este botón cuando el provider SMS de
+                  Firebase Phone Auth esté configurado. */}
             </div>
           )}
 

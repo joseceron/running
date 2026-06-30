@@ -10,7 +10,9 @@ import { getApps, initializeApp, type FirebaseApp } from "firebase/app";
 import {
   GoogleAuthProvider,
   PhoneAuthProvider,
+  browserLocalPersistence,
   getAuth,
+  setPersistence,
   type Auth,
 } from "firebase/auth";
 
@@ -44,6 +46,13 @@ export function getFirebaseApp(): FirebaseApp {
 export function getFirebaseAuth(): Auth {
   if (_auth === null) {
     _auth = getAuth(getFirebaseApp());
+    // Persistencia explícita en localStorage: garantiza que la sesión
+    // rehidrate igual en cada carga y que el primer onAuthStateChanged tras
+    // un signInWithPopup llegue con el user ya disponible. Sin esto, el primer
+    // ciclo podía arrancar con user=null y forzar reintentos de login.
+    setPersistence(_auth, browserLocalPersistence).catch(() => {
+      /* navegador sin localStorage: el SDK cae a memoria automáticamente */
+    });
   }
   return _auth;
 }
